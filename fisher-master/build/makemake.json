@@ -1,0 +1,32 @@
+{
+    "targets": [
+        {
+            "name": "fisher",
+            "type": "executable",
+            "cc": "gcc",
+            "cxx": "g++",
+            "cflags": "-O2 -W -Wall -I../src/core -I../src/robot",
+            "cxxflags": "-O2 -W -Wall -I../src/core -I../src/robot",
+            "ar": "ar",
+            "arflags": "rcs",
+            "libs": "-lqrencode -lSDL2",
+            "install": "",
+            "cmd": "",
+            "sources": [
+                "../src/main.cpp",
+                "../src/core",
+                "../src/robot"
+            ],
+            "depends": []
+        },
+        {
+            "name": "fake-client",
+            "type": "executable",
+            "cflags": "-O2 -W -Wall",
+            "libs": "-pthread",
+            "sources": [
+                "../test"
+            ]
+        }
+    ]
+}

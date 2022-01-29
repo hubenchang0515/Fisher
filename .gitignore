@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# exec
+fisher-master/build/fisher
+fisher-master/build/fake-client
