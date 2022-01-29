@@ -1,5 +1,5 @@
-#ifndef FISHER_SYNC_ROBOT_H
-#define FISHER_SYNC_ROBOT_H
+#ifndef FISHER_COOP_ROBOT_H
+#define FISHER_COOP_ROBOT_H
 
 #include <Application.h>
 #include <Renderer.h>
@@ -45,4 +45,4 @@ private:
 
 } // namespace Fisher
 
-#endif // FISHER_SYNC_ROBOT_H
+#endif // FISHER_COOP_ROBOT_H
