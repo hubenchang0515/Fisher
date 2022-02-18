@@ -39,7 +39,7 @@ std::vector<std::string> LoginRobot::getIpList() noexcept
     {
         std::string ip = inet_ntoa(*(struct in_addr*)(hostEntry->h_addr_list[i]));
         ipList.emplace_back(ip);
-        SDL_Log("%s\n", ip.c_str());
+        SDL_Log("IP: %s\n", ip.c_str());
     }
 
     return ipList;

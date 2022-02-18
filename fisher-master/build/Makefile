@@ -7,20 +7,24 @@ all: fisher fake-client
 install: all
 
 clean:
-	rm -f main.o Robot.o Window.o Application.o Renderer.o Texture.o QRCode.o LoginRobot.o CoopRobot.o
+	rm -f main.o Robot.o NetBuffer.o Window.o Application.o Renderer.o Texture.o QRCode.o LoginRobot.o CoopRobot.o
 	rm -f fake-client.o
 
-fisher : main.o Robot.o Window.o Application.o Renderer.o Texture.o QRCode.o LoginRobot.o CoopRobot.o  
+fisher : main.o Robot.o NetBuffer.o Window.o Application.o Renderer.o Texture.o QRCode.o LoginRobot.o CoopRobot.o  
 	g++ -o $@ $^ -lqrencode -lSDL2 
 
 main.o: ../src/main.cpp ../src/core/Application.h ../src/core/Window.h \
  ../src/core/Renderer.h ../src/core/Robot.h ../src/core/Texture.h \
- ../src/core/QRCode.h ../src/robot/LoginRobot.h ../src/robot/CoopRobot.h
+ ../src/core/QRCode.h ../src/robot/LoginRobot.h ../src/robot/CoopRobot.h \
+ ../src/core/NetBuffer.h
 	g++ -c  ../src/main.cpp -O2 -W -Wall -I../src/core -I../src/robot 
 
 Robot.o: ../src/core/Robot.cpp ../src/core/Robot.h ../src/core/Renderer.h \
  ../src/core/Window.h
 	g++ -c  ../src/core/Robot.cpp -O2 -W -Wall -I../src/core -I../src/robot 
+
+NetBuffer.o: ../src/core/NetBuffer.cpp ../src/core/NetBuffer.h
+	g++ -c  ../src/core/NetBuffer.cpp -O2 -W -Wall -I../src/core -I../src/robot 
 
 Window.o: ../src/core/Window.cpp ../src/core/Window.h
 	g++ -c  ../src/core/Window.cpp -O2 -W -Wall -I../src/core -I../src/robot 
@@ -47,7 +51,8 @@ LoginRobot.o: ../src/robot/LoginRobot.cpp ../src/robot/LoginRobot.h \
 
 CoopRobot.o: ../src/robot/CoopRobot.cpp ../src/robot/CoopRobot.h \
  ../src/core/Application.h ../src/core/Window.h ../src/core/Renderer.h \
- ../src/core/Robot.h ../src/core/Texture.h ../src/core/QRCode.h
+ ../src/core/Robot.h ../src/core/Texture.h ../src/core/QRCode.h \
+ ../src/core/NetBuffer.h
 	g++ -c  ../src/robot/CoopRobot.cpp -O2 -W -Wall -I../src/core -I../src/robot 
 
 fake-client : fake-client.o  

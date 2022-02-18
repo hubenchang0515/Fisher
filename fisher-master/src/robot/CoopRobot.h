@@ -6,6 +6,7 @@
 #include <Texture.h>
 #include <QRCode.h>
 #include <Robot.h>
+#include <NetBuffer.h>
 
 #include <cerrno>
 #include <cstring>
@@ -34,12 +35,14 @@ protected:
     virtual void other() override;
 
 private:
-    int m_width = 432;
-    int m_height = 960;
+    int m_stride = 0;
+    int m_width = 0;
+    int m_height = 0;
     int m_coopSocket = -1;
     Texture* m_texture = nullptr;
     SDL_mutex* m_mutex = nullptr;
-    void* m_data;
+    void* m_data = nullptr;
+    NetBuffer* m_buffer = nullptr;
 
 }; // class CoopRobot
 

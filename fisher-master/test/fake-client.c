@@ -23,11 +23,15 @@ void pipeHandle(int signum)
 	running = false;
 }
 
-// 发生图像的线程
+// 发送图像的线程
 void* sendImageThread(void* userdata)
 {
+	uint32_t stride = htonl(WIDTH * 4);
+	uint32_t width = htonl(WIDTH);
+	uint32_t height = htonl(HEIGHT);
+
 	int fd = *(int*)(userdata);
-	uint8_t* data = malloc(WIDTH * HEIGHT * 3);
+	uint8_t* data = malloc(WIDTH * HEIGHT * 4);
 	uint8_t temp = 0xff;
 	uint8_t r = 0;
 	uint8_t g = 0;
@@ -42,12 +46,17 @@ void* sendImageThread(void* userdata)
 		{
 			for (int x = 0; x < WIDTH; x++)
 			{
-				data[(y*WIDTH+x)*3] = r;
-				data[(y*WIDTH+x)*3+1] = g;
-				data[(y*WIDTH+x)*3+2] = b;
+				// ABGR
+				data[(y*WIDTH+x)*4] = r;
+				data[(y*WIDTH+x)*4+1] = g;
+				data[(y*WIDTH+x)*4+2] = b;
+				data[(y*WIDTH+x)*4+3] = 0xff; // alpha
 			}
 		}
-		write(fd, data, WIDTH * HEIGHT * 3);
+		write(fd, &stride, 4);
+		write(fd, &width, 4);
+		write(fd, &height, 4);
+		write(fd, data, WIDTH * HEIGHT * 4);
 		sleep(1);
 	}
 
@@ -55,30 +64,34 @@ void* sendImageThread(void* userdata)
 	return NULL;
 }
 
-// 接收时间的线程
+// 接收命令的线程
 void* receiveCommand(void* userdata)
 {
 	int fd = *(int*)(userdata);
 	char cmd[CMD_SIZE];
+	uint32_t count;
 
 	while(running)
 	{
-		ssize_t get = 0;
-		do
+		// 读取数据长度
+		ssize_t len = recv(fd, &count, sizeof(uint32_t), MSG_WAITALL);
+		if (len <= 0 )
 		{
-			ssize_t len = read(fd, cmd + get, CMD_SIZE);
-			if (len == 0) // 对端关闭连接
-			{
-				return NULL;
-			}
-			if (len < 0)
-			{
-				fprintf(stderr, "%s\n", strerror(errno));
-				continue;
-			}
-			get += len;
-		}while(get < CMD_SIZE && running);
-		printf("%.*s\n", CMD_SIZE, cmd);
+			break;
+		}
+		count = ntohl(count);
+		if (count > CMD_SIZE)
+		{
+			fprintf(stderr, "%u too large\n", count);
+		}
+
+		len = recv(fd, cmd, count, MSG_WAITALL);
+		if (len <= 0 )
+		{
+			break;
+		}
+
+		printf("%s\n", cmd);
 	}
 	return NULL;
 }
