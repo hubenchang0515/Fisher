@@ -28,7 +28,9 @@ class CooperationActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        stopService(serviceIntent)
+        if (serviceIntent != null) {
+            stopService(serviceIntent)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

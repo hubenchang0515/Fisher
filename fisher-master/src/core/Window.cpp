@@ -62,4 +62,11 @@ void Window::setHeight(int height) noexcept
     m_height = height;
 }
 
+void Window::resize(int width, int height) noexcept
+{
+    SDL_SetWindowSize(m_window, width, height);
+    m_width = width;
+    m_height = height;
+}
+
 }; // namespace Fisher

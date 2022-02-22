@@ -1,6 +1,5 @@
 package moe.planc.fisher_slave
 
-import android.R.attr
 import android.app.*
 import android.content.Intent
 import android.hardware.display.DisplayManager
@@ -14,70 +13,32 @@ import androidx.core.app.NotificationCompat
 import android.content.Context
 
 import android.graphics.Color
-import android.graphics.ImageFormat
 import android.graphics.PixelFormat
-import android.media.Image
 import android.media.ImageReader
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import java.net.InetAddress
 import kotlin.Exception
-import android.graphics.Bitmap
-
-import android.R.attr.bitmap
-import android.media.Image.Plane
-import java.io.ByteArrayOutputStream
+import android.hardware.display.VirtualDisplay
 import java.io.DataOutputStream
-import java.lang.StringBuilder
-import java.nio.ByteBuffer
+import android.view.Display
+import android.view.WindowManager
+
+
+
 
 
 class CooperationService : Service() {
     private val TAG = "CooperationService"
-    private lateinit var innerThread: InnerThread
+    private lateinit var innerThread: CooperationThread
     private lateinit var projectionManager: MediaProjectionManager
     private lateinit var projection: MediaProjection
     private lateinit var imageReader: ImageReader
+    private lateinit var virtualDisplay: VirtualDisplay
     private val pid = android.os.Process.myPid();
-    private val width = 432
-    private val height = 960
-
-    private class InnerThread(val ip: String?, val port: Int, val imageReader: ImageReader) : Thread() {
-        private val TAG = "CooperationService"
-        private lateinit var socket: Socket
-        private val width = 432
-        private val height = 960
-        private var running = true
-
-        override fun run() {
-            try {
-                socket = Socket(InetAddress.getByName(ip), port)
-                val out = DataOutputStream(socket.getOutputStream())
-                running = true
-                while (running) {
-                    var image = imageReader.acquireLatestImage() ?: continue
-                    val planes = image.planes
-                    val buffer = planes[0].buffer
-                    val byteArray = ByteArray(planes[0].rowStride * height)
-                    buffer.get(byteArray)
-                    out.writeInt(planes[0].rowStride)
-                    out.writeInt(width)
-                    out.writeInt(height)
-                    out.write(byteArray)
-                    image.close()
-                }
-            } catch (e:Exception) {
-                Log.e(TAG, e.toString())
-            }
-
-            socket.close()
-        }
-
-        fun exit() {
-            running = false
-        }
-    }
+    private var width = 432
+    private var height = 960
 
     override fun onBind(intent: Intent): IBinder {
         TODO("Return the communication channel to the service.")
@@ -88,6 +49,7 @@ class CooperationService : Service() {
         super.onDestroy()
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent == null) {
             return START_NOT_STICKY
@@ -101,22 +63,30 @@ class CooperationService : Service() {
             Log.d(TAG, "connect to $ip:$port")
 
             val resultCode = intent.getIntExtra("resultCode", AppCompatActivity.RESULT_OK)
-            imageReader = ImageReader.newInstance(432, 960, PixelFormat.RGBA_8888, 2)
 
             projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
             projection = projectionManager.getMediaProjection(resultCode, intent)
-            projection.createVirtualDisplay(
+            virtualDisplay = projection.createVirtualDisplay(
                 "cooperation",
                 width,
                 height,
                 1,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                imageReader.surface,
+                null,
                 null,
                 null
             )
 
-            innerThread = InnerThread(ip, port, imageReader)
+            if (virtualDisplay == null) {
+                Log.e(TAG, "virtual display is null")
+                return START_NOT_STICKY
+            }
+
+            val window = getSystemService(WINDOW_SERVICE) as WindowManager
+            val display = window.defaultDisplay
+
+            innerThread = CooperationThread(ip, port, width, height,
+                display!!, virtualDisplay)
             innerThread.start()
         } catch (e:Exception) {
             Log.e("CooperationActivity", e.toString())

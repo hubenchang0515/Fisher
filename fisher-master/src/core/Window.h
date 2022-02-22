@@ -27,6 +27,7 @@ public:
 
     void setWidth(int width) noexcept;
     void setHeight(int height) noexcept;
+    void resize(int width, int height) noexcept;
 
 private:
     string m_title;

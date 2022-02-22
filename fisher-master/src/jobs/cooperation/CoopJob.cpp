@@ -30,12 +30,14 @@ void CoopRobot::onDraw()
     Application::renderer()->setTarget();
     Application::renderer()->clear();
 
+    m_mutex.lock();
     if (m_data != nullptr)
     {
         m_texture->update(m_data, m_stride);
         Application::renderer()->copy(m_texture);
     }
     Application::renderer()->present();
+    m_mutex.unlock();
 }
 
 void CoopRobot::onEvent(SDL_Event& ev)
@@ -86,17 +88,18 @@ void CoopRobot::net()
         m_coopSocket.read(&stride);
         m_coopSocket.read(&width);
         m_coopSocket.read(&height);
-        // if(!m_coopSocket.read(&stride) || !m_coopSocket.read(&width) || !m_coopSocket.read(&height))
-        // {
-        //     LOG("running %d", Application::isRunning());
-        //     Application::quit();
-        //     LOG("running %d", Application::isRunning());
-        // }
 
-        LOG("running %d", Application::isRunning());
+        if (stride == 0 || width == 0 || height == 0)
+            continue;
+
+        if (stride > INT16_MAX || width > INT16_MAX || height > INT16_MAX)
+            continue;
+
+        LOG("%u %u %u", stride, width, height);
 
         if (m_width != static_cast<int>(width) || m_height != static_cast<int>(height))
         {
+            m_mutex.lock();
             if (m_texture != nullptr) 
             {
                 delete m_texture;
@@ -104,12 +107,13 @@ void CoopRobot::net()
             m_width = static_cast<int>(width);
             m_height = static_cast<int>(height);
             m_texture = new Texture(Application::renderer(), m_width, m_height, SDL_PIXELFORMAT_RGBA32);
-            Application::window()->setWidth(m_width);
-            Application::window()->setHeight(m_height);
+            Application::window()->resize(m_width, m_height);
+            m_mutex.unlock();
         }
 
         if (m_stride != static_cast<int>(stride) || m_height != static_cast<int>(height))
         {
+            m_mutex.lock();
             if (m_data != nullptr)
             {
                 free(m_data);
@@ -118,6 +122,7 @@ void CoopRobot::net()
             m_stride = static_cast<int>(stride);
             m_height = static_cast<int>(height);
             m_data = malloc(m_stride * m_height);
+            m_mutex.unlock();
         }
 
         void* data = malloc(m_stride * m_height);

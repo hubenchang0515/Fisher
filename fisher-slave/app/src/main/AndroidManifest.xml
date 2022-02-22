@@ -17,7 +17,6 @@
             android:name=".CooperationService"
             android:enabled="true"
             android:exported="true"
-            android:process=":cooperation"
             android:foregroundServiceType="mediaProjection" />
         <activity
             android:name=".MainActivity"
