@@ -44,7 +44,7 @@ void CoopRobot::draw()
 
     if (m_data != nullptr)
     {
-        m_texture->update(m_data, m_width * 4);
+        m_texture->update(m_data, m_stride);
         Application::renderer()->copy(m_texture);
     }
     Application::renderer()->present();
