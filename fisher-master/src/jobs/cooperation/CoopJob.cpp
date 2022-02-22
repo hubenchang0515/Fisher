@@ -82,9 +82,9 @@ void CoopRobot::net()
 {
     while (Application::isRunning())
     {
-        uint32_t stride;
-        uint32_t width;
-        uint32_t height;
+        uint32_t stride = 0;
+        uint32_t width = 0;
+        uint32_t height = 0;
         m_coopSocket.read(&stride);
         m_coopSocket.read(&width);
         m_coopSocket.read(&height);
@@ -94,8 +94,6 @@ void CoopRobot::net()
 
         if (stride > INT16_MAX || width > INT16_MAX || height > INT16_MAX)
             continue;
-
-        LOG("%u %u %u", stride, width, height);
 
         if (m_width != static_cast<int>(width) || m_height != static_cast<int>(height))
         {
