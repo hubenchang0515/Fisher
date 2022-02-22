@@ -90,7 +90,10 @@ void Application::setJob(Job* job, void* userdata)
     job->m_innerShow();
 }
 
-Application::Application(int argc, char** argv)
+Application::Application(int argc, char** argv):
+    m_window(nullptr),
+    m_renderer(nullptr),
+    m_job(nullptr)
 {
     if (Application::instance != nullptr)
     {
