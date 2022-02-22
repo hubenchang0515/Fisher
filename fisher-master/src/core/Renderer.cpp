@@ -87,7 +87,7 @@ bool Renderer::setColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha)
     return true;
 }
 
-bool Renderer::setRed(uint red) noexcept
+bool Renderer::setRed(uint8_t red) noexcept
 {
     return setColor(red, m_green, m_blue, m_alpha);
 }
