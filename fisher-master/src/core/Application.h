@@ -3,10 +3,11 @@
 
 #include <SDL2/SDL.h>
 #include <functional>
+#include <mutex>
 
 #include <Window.h>
 #include <Renderer.h>
-#include <Robot.h>
+#include <Job.h>
 
 namespace Fisher
 {
@@ -29,21 +30,18 @@ public:
     static const char* arg(int n) noexcept;
     static Window* window() noexcept;
     static Renderer* renderer() noexcept;
-    static void setRobot(Robot* worker, void* userdata=nullptr);
+    static void setJob(Job* job, void* userdata=nullptr);
 
 private:
     int m_argc;
     char** m_argv;
     bool m_running;
-    SDL_mutex* m_runningMutex;
+    std::mutex m_runningMutex;
     Window* m_window;
     Renderer* m_renderer;
-    Robot* m_worker;
+    Job* m_job;
 
     static Application* instance;
-    static int drawThread(void* userdata) noexcept;
-    static int eventThread(void* userdata) noexcept;
-    static int otherThread(void* userdata) noexcept;
 
 }; // class Application
 

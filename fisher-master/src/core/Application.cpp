@@ -1,5 +1,6 @@
 #include <Application.h>
 #include <SDL2/SDL.h>
+#include <stdexcept>
 
 namespace Fisher
 {
@@ -10,18 +11,18 @@ Application* Application::instance = nullptr;
 // static
 bool Application::isRunning() noexcept
 {
-    SDL_LockMutex(Application::instance->m_runningMutex);
+    Application::instance->m_runningMutex.lock();
     bool is = Application::instance->m_running;
-    SDL_UnlockMutex(Application::instance->m_runningMutex);
+    Application::instance->m_runningMutex.unlock();
     return is;
 }
 
 // static
 void Application::quit() noexcept
 {
-    SDL_LockMutex(Application::instance->m_runningMutex);
+    Application::instance->m_runningMutex.lock();
     Application::instance->m_running = false;
-    SDL_UnlockMutex(Application::instance->m_runningMutex);
+    Application::instance->m_runningMutex.unlock();
 }
 
 // static
@@ -49,66 +50,31 @@ Renderer* Application::renderer() noexcept
 }
 
 // static 
-void Application::setRobot(Robot* worker, void* userdata)
+void Application::setJob(Job* job, void* userdata)
 {
     if (Application::instance->m_window == nullptr || Application::instance->m_renderer == nullptr)
     {
         throw std::runtime_error("need bind window and renderer");
     }
-    Application::instance->m_worker = worker;
-    Application::instance->m_worker->init(userdata);
-}
 
-// static
-int Application::drawThread(void* userdata) noexcept
-{
-    (void)(userdata);
-    if (Application::instance->m_worker == nullptr)
-        return EXIT_FAILURE;
-
-    Uint32 ticks = SDL_GetTicks();
-    while (isRunning())
+    if (Application::instance->m_job != nullptr)
     {
-        ticks = SDL_GetTicks();
-        Application::instance->m_worker->draw();
-        int delay = 1000 / 60 + ticks - SDL_GetTicks();
-        if (delay > 0)
-            SDL_Delay(delay);
+        Application::instance->m_job->onHide();
+        Application::instance->m_job->m_innerHide();
     }
-    
-    return EXIT_SUCCESS;
-}
 
-// static
-int Application::eventThread(void* userdata) noexcept
-{
-    (void)(userdata);
-    if (Application::instance->m_worker == nullptr)
-        return EXIT_FAILURE;
-    SDL_Event ev;
-    while (isRunning())
+    Application::instance->m_job = job;
+    if (Application::instance->m_job == nullptr)
     {
-        if (SDL_WaitEventTimeout(&ev, 100) > 0)
-        {
-            Application::instance->m_worker->event(ev);
-            if (ev.type == SDL_QUIT)
-                Application::quit();
-        }
+        return;
     }
-    return EXIT_SUCCESS;
-}
 
-// static 
-int Application::otherThread(void* userdata) noexcept
-{
-    (void)(userdata);
-    if (Application::instance->m_worker == nullptr)
-        return EXIT_FAILURE;
-    while (isRunning())
+    if (Application::instance->m_job->m_state == Job::State::nil)
     {
-        Application::instance->m_worker->other();
+        Application::instance->m_job->onCreate(userdata);
     }
-    return EXIT_SUCCESS;
+    Application::instance->m_job->onShow();
+    Application::instance->m_job->m_innerShow();
 }
 
 Application::Application(int argc, char** argv)
@@ -124,23 +90,12 @@ Application::Application(int argc, char** argv)
     m_argc = argc;
     m_argv = argv;
     m_running = true;
-    m_runningMutex = SDL_CreateMutex();
-    if (m_runningMutex == nullptr)
-    {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", SDL_GetError());
-        return;
-    }
 
     Application::instance = this;
 }
 
 Application::~Application() noexcept
 {
-    if (m_runningMutex != nullptr)
-    {
-        SDL_DestroyMutex(m_runningMutex);
-    }
-
     SDL_Quit();
 }
 
@@ -152,28 +107,25 @@ void Application::bind(Window* window, Renderer* renderer) noexcept
 
 int Application::exec() noexcept
 {
-    SDL_Thread* drawID = SDL_CreateThread(Application::drawThread, "main", nullptr);
-    if (drawID == nullptr)
-    {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", SDL_GetError());
-    }
+    if (Application::instance->m_job == nullptr)
+        return EXIT_FAILURE;
 
-    SDL_Thread* eventID = SDL_CreateThread(Application::eventThread, "event", nullptr);
-    if (eventID == nullptr)
+    SDL_Event ev;
+    Uint32 ticks = SDL_GetTicks();
+    while (isRunning())
     {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", SDL_GetError());
-    }
-
-    SDL_Thread* otherID = SDL_CreateThread(Application::otherThread, "io", nullptr);
-    if (otherID == nullptr)
-    {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", SDL_GetError());
+        ticks = SDL_GetTicks();
+        while (SDL_PollEvent(&ev) > 0)
+        {
+            Application::instance->m_job->onEvent(ev);
+        }
+        Application::instance->m_job->onDraw();
+        int delay = 1000 / 60 + ticks - SDL_GetTicks();
+        if (delay > 0)
+            SDL_Delay(delay);
     }
     
-    SDL_WaitThread(drawID, nullptr);
-    SDL_WaitThread(eventID, nullptr);
-    SDL_WaitThread(otherID, nullptr);
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 }; // namespace Fisher

@@ -1,4 +1,5 @@
-#include <LoginRobot.h>
+#include <LoginJob.h>
+#include <thread>
 
 namespace Fisher
 {
@@ -21,7 +22,7 @@ LoginRobot::~LoginRobot()
 }
 
 // 设置登录后跳转到目标
-void LoginRobot::setTarget(Robot* target)
+void LoginRobot::setTarget(Job* target)
 {
     m_target = target;
 }
@@ -118,7 +119,15 @@ Texture* LoginRobot::qrcode(const std::string& content) noexcept
     return m_texture;
 }
 
-void LoginRobot::draw()
+
+void LoginRobot::onCreate(void* userdata)
+{
+    (void)(userdata);
+    std::thread netThread(&LoginRobot::net, this);
+    netThread.detach();
+}
+
+void LoginRobot::onDraw()
 {
     Renderer* renderer = Application::renderer();
     renderer->setTarget();
@@ -127,7 +136,7 @@ void LoginRobot::draw()
     renderer->present();
 }
 
-void LoginRobot::event(SDL_Event& ev)
+void LoginRobot::onEvent(SDL_Event& ev)
 {
     if (ev.type == SDL_QUIT)
     {
@@ -136,7 +145,7 @@ void LoginRobot::event(SDL_Event& ev)
     }
 }
 
-void LoginRobot::other()
+void LoginRobot::net()
 {
     struct sockaddr_in addr;
     socklen_t len = sizeof(addr);
@@ -146,7 +155,7 @@ void LoginRobot::other()
         return;
     }
     SDL_Log("Get connection from %s:%d", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
-    Application::setRobot(m_target, &m_coopSocket);
+    Application::setJob(m_target, &m_coopSocket);
 }
 
 }; // namespace Fisher

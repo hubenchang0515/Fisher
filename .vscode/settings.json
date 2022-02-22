@@ -9,6 +9,10 @@
         "streambuf": "cpp",
         "array": "cpp",
         "string": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "ios": "cpp",
+        "random": "cpp",
+        "stdexcept": "cpp",
+        "thread": "cpp"
     }
 }

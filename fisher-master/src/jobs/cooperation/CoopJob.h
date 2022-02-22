@@ -5,7 +5,7 @@
 #include <Renderer.h>
 #include <Texture.h>
 #include <QRCode.h>
-#include <Robot.h>
+#include <Job.h>
 #include <NetBuffer.h>
 
 #include <cerrno>
@@ -16,11 +16,12 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <mutex>
 
 namespace Fisher
 {
 
-class CoopRobot : public Robot
+class CoopRobot : public Job
 {
 public:
     CoopRobot();
@@ -29,10 +30,9 @@ public:
     void setSocket(int fd);
 
 protected:
-    virtual void init(void* userdata) override;
-    virtual void draw() override;
-    virtual void event(SDL_Event& ev) override;
-    virtual void other() override;
+    virtual void onCreate(void* userdata) override;
+    virtual void onDraw() override;
+    virtual void onEvent(SDL_Event& ev) override;
 
 private:
     int m_stride = 0;
@@ -40,9 +40,11 @@ private:
     int m_height = 0;
     int m_coopSocket = -1;
     Texture* m_texture = nullptr;
-    SDL_mutex* m_mutex = nullptr;
+    std::mutex m_mutex;
     void* m_data = nullptr;
     NetBuffer* m_buffer = nullptr;
+
+    void net();
 
 }; // class CoopRobot
 

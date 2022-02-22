@@ -5,8 +5,8 @@
             "type": "executable",
             "cc": "gcc",
             "cxx": "g++",
-            "cflags": "-O2 -W -Wall -I../src/core -I../src/robot",
-            "cxxflags": "-O2 -W -Wall -I../src/core -I../src/robot",
+            "cflags": "-O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login",
+            "cxxflags": "-O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login",
             "ar": "ar",
             "arflags": "rcs",
             "libs": "-lqrencode -lSDL2",
@@ -15,7 +15,8 @@
             "sources": [
                 "../src/main.cpp",
                 "../src/core",
-                "../src/robot"
+                "../src/jobs/cooperation",
+                "../src/jobs/login"
             ],
             "depends": []
         },

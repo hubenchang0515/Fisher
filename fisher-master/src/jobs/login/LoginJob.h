@@ -5,7 +5,7 @@
 #include <Renderer.h>
 #include <Texture.h>
 #include <QRCode.h>
-#include <Robot.h>
+#include <Job.h>
 
 #include <cerrno>
 #include <cstring>
@@ -19,13 +19,13 @@
 namespace Fisher
 {
 
-class LoginRobot : public Robot
+class LoginRobot : public Job
 {
 public:
     LoginRobot();
     ~LoginRobot();
 
-    void setTarget(Robot* target);
+    void setTarget(Job* target);
 
     std::vector<std::string> getIpList() noexcept;
     int listen() noexcept;
@@ -33,19 +33,17 @@ public:
     Texture* qrcode(const std::string& content) noexcept;
 
 protected:
-    virtual void draw() override;
-    virtual void event(SDL_Event& ev) override;
-    virtual void other() override;
+    virtual void onCreate(void* userdata) override;
+    virtual void onDraw() override;
+    virtual void onEvent(SDL_Event& ev) override;
 
 private:
-    Robot* m_target;
+    Job* m_target;
     Texture* m_texture = nullptr;
     int m_listenSocket = -1;
     int m_coopSocket = -1;
 
-
-    
-
+    void net();
 }; // class LoginRobot
 
 }; // namespace Fisher

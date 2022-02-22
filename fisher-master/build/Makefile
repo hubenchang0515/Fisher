@@ -7,53 +7,52 @@ all: fisher fake-client
 install: all
 
 clean:
-	rm -f main.o Robot.o NetBuffer.o Window.o Application.o Renderer.o Texture.o QRCode.o LoginRobot.o CoopRobot.o
+	rm -f main.o Renderer.o NetBuffer.o Texture.o Window.o QRCode.o Job.o Application.o CoopJob.o LoginJob.o
 	rm -f fake-client.o
 
-fisher : main.o Robot.o NetBuffer.o Window.o Application.o Renderer.o Texture.o QRCode.o LoginRobot.o CoopRobot.o  
+fisher : main.o Renderer.o NetBuffer.o Texture.o Window.o QRCode.o Job.o Application.o CoopJob.o LoginJob.o  
 	g++ -o $@ $^ -lqrencode -lSDL2 
 
 main.o: ../src/main.cpp ../src/core/Application.h ../src/core/Window.h \
- ../src/core/Renderer.h ../src/core/Robot.h ../src/core/Texture.h \
- ../src/core/QRCode.h ../src/robot/LoginRobot.h ../src/robot/CoopRobot.h \
- ../src/core/NetBuffer.h
-	g++ -c  ../src/main.cpp -O2 -W -Wall -I../src/core -I../src/robot 
-
-Robot.o: ../src/core/Robot.cpp ../src/core/Robot.h ../src/core/Renderer.h \
- ../src/core/Window.h
-	g++ -c  ../src/core/Robot.cpp -O2 -W -Wall -I../src/core -I../src/robot 
-
-NetBuffer.o: ../src/core/NetBuffer.cpp ../src/core/NetBuffer.h
-	g++ -c  ../src/core/NetBuffer.cpp -O2 -W -Wall -I../src/core -I../src/robot 
-
-Window.o: ../src/core/Window.cpp ../src/core/Window.h
-	g++ -c  ../src/core/Window.cpp -O2 -W -Wall -I../src/core -I../src/robot 
-
-Application.o: ../src/core/Application.cpp ../src/core/Application.h \
- ../src/core/Window.h ../src/core/Renderer.h ../src/core/Robot.h
-	g++ -c  ../src/core/Application.cpp -O2 -W -Wall -I../src/core -I../src/robot 
+ ../src/core/Renderer.h ../src/core/Job.h ../src/core/Texture.h \
+ ../src/core/QRCode.h ../src/jobs/login/LoginJob.h \
+ ../src/jobs/cooperation/CoopJob.h ../src/core/NetBuffer.h
+	g++ -c  ../src/main.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login 
 
 Renderer.o: ../src/core/Renderer.cpp ../src/core/Renderer.h \
  ../src/core/Window.h ../src/core/Texture.h
-	g++ -c  ../src/core/Renderer.cpp -O2 -W -Wall -I../src/core -I../src/robot 
+	g++ -c  ../src/core/Renderer.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login 
+
+NetBuffer.o: ../src/core/NetBuffer.cpp ../src/core/NetBuffer.h
+	g++ -c  ../src/core/NetBuffer.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login 
 
 Texture.o: ../src/core/Texture.cpp ../src/core/Texture.h \
  ../src/core/Renderer.h ../src/core/Window.h
-	g++ -c  ../src/core/Texture.cpp -O2 -W -Wall -I../src/core -I../src/robot 
+	g++ -c  ../src/core/Texture.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login 
+
+Window.o: ../src/core/Window.cpp ../src/core/Window.h
+	g++ -c  ../src/core/Window.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login 
 
 QRCode.o: ../src/core/QRCode.cpp ../src/core/QRCode.h
-	g++ -c  ../src/core/QRCode.cpp -O2 -W -Wall -I../src/core -I../src/robot 
+	g++ -c  ../src/core/QRCode.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login 
 
-LoginRobot.o: ../src/robot/LoginRobot.cpp ../src/robot/LoginRobot.h \
- ../src/core/Application.h ../src/core/Window.h ../src/core/Renderer.h \
- ../src/core/Robot.h ../src/core/Texture.h ../src/core/QRCode.h
-	g++ -c  ../src/robot/LoginRobot.cpp -O2 -W -Wall -I../src/core -I../src/robot 
+Job.o: ../src/core/Job.cpp ../src/core/Job.h
+	g++ -c  ../src/core/Job.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login 
 
-CoopRobot.o: ../src/robot/CoopRobot.cpp ../src/robot/CoopRobot.h \
+Application.o: ../src/core/Application.cpp ../src/core/Application.h \
+ ../src/core/Window.h ../src/core/Renderer.h ../src/core/Job.h
+	g++ -c  ../src/core/Application.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login 
+
+CoopJob.o: ../src/jobs/cooperation/CoopJob.cpp \
+ ../src/jobs/cooperation/CoopJob.h ../src/core/Application.h \
+ ../src/core/Window.h ../src/core/Renderer.h ../src/core/Job.h \
+ ../src/core/Texture.h ../src/core/QRCode.h ../src/core/NetBuffer.h
+	g++ -c  ../src/jobs/cooperation/CoopJob.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login 
+
+LoginJob.o: ../src/jobs/login/LoginJob.cpp ../src/jobs/login/LoginJob.h \
  ../src/core/Application.h ../src/core/Window.h ../src/core/Renderer.h \
- ../src/core/Robot.h ../src/core/Texture.h ../src/core/QRCode.h \
- ../src/core/NetBuffer.h
-	g++ -c  ../src/robot/CoopRobot.cpp -O2 -W -Wall -I../src/core -I../src/robot 
+ ../src/core/Job.h ../src/core/Texture.h ../src/core/QRCode.h
+	g++ -c  ../src/jobs/login/LoginJob.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login 
 
 fake-client : fake-client.o  
 	gcc -o $@ $^ -pthread 

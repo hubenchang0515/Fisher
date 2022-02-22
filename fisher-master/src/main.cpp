@@ -3,8 +3,8 @@
 #include <Renderer.h>
 #include <Texture.h>
 #include <QRCode.h>
-#include <LoginRobot.h>
-#include <CoopRobot.h>
+#include <LoginJob.h>
+#include <CoopJob.h>
 
 using namespace Fisher;
 
@@ -21,7 +21,7 @@ int main()
     LoginRobot loginRobot;
     loginRobot.setTarget(&coopRobot);
 
-    app.setRobot(&loginRobot);
+    app.setJob(&loginRobot);
     app.exec();
     return 0;
 }
