@@ -6,15 +6,12 @@
 #include <Texture.h>
 #include <QRCode.h>
 #include <Job.h>
+#include <Socket.h>
 
 #include <cerrno>
 #include <cstring>
 #include <string>
 #include <vector>
-#include <unistd.h>  
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
 
 namespace Fisher
 {
@@ -40,8 +37,8 @@ protected:
 private:
     Job* m_target;
     Texture* m_texture = nullptr;
-    int m_listenSocket = -1;
-    int m_coopSocket = -1;
+    Socket m_listenSocket;
+    Socket m_coopSocket;
 
     void net();
 }; // class LoginRobot

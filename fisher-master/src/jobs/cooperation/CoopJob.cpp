@@ -6,33 +6,21 @@ namespace Fisher
 
 CoopRobot::CoopRobot()
 {
-    m_buffer = new NetBuffer();
+    
 }
 
 CoopRobot::~CoopRobot()
 {
-    if (m_buffer != nullptr)
-        delete m_buffer;
-
     if (m_data != nullptr)
         free(m_data);
 
     if (m_texture != nullptr)
         delete m_texture;
-
-    if (m_coopSocket != -1)
-        close(m_coopSocket);
 }
-
-void CoopRobot::setSocket(int fd)
-{
-    m_coopSocket = fd;
-}
-
 
 void CoopRobot::onCreate(void* userdata)
 {
-    m_coopSocket = *static_cast<int*>(userdata);
+    m_coopSocket = std::move(*static_cast<Socket*>(userdata));
     std::thread netThread(&CoopRobot::net, this);
     netThread.detach();
 }
@@ -55,7 +43,7 @@ void CoopRobot::onEvent(SDL_Event& ev)
     #define CMD_SIZE 128
     char cmd[CMD_SIZE];
     if (ev.type == SDL_QUIT)
-        shutdown(m_coopSocket, SHUT_RDWR);
+        m_coopSocket.shutdown();
 
     bool hasCmd = false;
 
@@ -83,45 +71,29 @@ void CoopRobot::onEvent(SDL_Event& ev)
     if (hasCmd)
     {
         uint32_t size = strlen(cmd) + 1;
-        m_buffer->clear();
-        m_buffer->write(size);
-        m_buffer->write(cmd);
-        ssize_t len = write(m_coopSocket, m_buffer->data(), m_buffer->size());
-        if (len < 0 || static_cast<size_t>(len) < m_buffer->size())
-        {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s\n", strerror(errno));
-        }
-
-        m_buffer->seek();
-        m_buffer->read(&size);
-        m_buffer->read(cmd, size);
+        m_coopSocket.write(size);
+        m_coopSocket.write(cmd, size);
     }
 }
 
 void CoopRobot::net()
 {
-    while (true)
+    while (Application::isRunning())
     {
-        constexpr size_t headerSize = sizeof(uint32_t) * 3;
-        uint8_t header[headerSize]; 
-
-        ssize_t len = recv(m_coopSocket, header, headerSize, MSG_WAITALL);
-        if (len < 0)
-        {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", strerror(errno));
-            return;
-        }
-
-        m_buffer->clear();
-        m_buffer->write(header, headerSize);
-
         uint32_t stride;
         uint32_t width;
         uint32_t height;
-        m_buffer->seek();
-        m_buffer->read(&stride);
-        m_buffer->read(&width);
-        m_buffer->read(&height);
+        m_coopSocket.read(&stride);
+        m_coopSocket.read(&width);
+        m_coopSocket.read(&height);
+        // if(!m_coopSocket.read(&stride) || !m_coopSocket.read(&width) || !m_coopSocket.read(&height))
+        // {
+        //     LOG("running %d", Application::isRunning());
+        //     Application::quit();
+        //     LOG("running %d", Application::isRunning());
+        // }
+
+        LOG("running %d", Application::isRunning());
 
         if (m_width != static_cast<int>(width) || m_height != static_cast<int>(height))
         {
@@ -148,25 +120,13 @@ void CoopRobot::net()
             m_data = malloc(m_stride * m_height);
         }
 
-        uint8_t* data = (uint8_t*)malloc(m_stride * m_height);
+        void* data = malloc(m_stride * m_height);
 
-        ssize_t get = 0;
-        do
+        if (!m_coopSocket.read(data, m_stride * m_height))
         {
-            ssize_t len = read(m_coopSocket, data + get, m_stride * m_height - get);
-            if (len == 0)
-            {
-                SDL_Log("client disconnected");
-                Application::quit();
-                return;
-            }
-            else if (len < 0)
-            {
-                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", strerror(errno));
-                break;
-            }
-            get += len;
-        }while(get < m_stride * m_height);
+            Application::quit();
+            break;
+        }
 
         m_mutex.lock();
         memcpy(m_data, data, m_stride * m_height);

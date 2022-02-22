@@ -35,7 +35,7 @@ import java.nio.ByteBuffer
 
 class CooperationService : Service() {
     private val TAG = "CooperationService"
-    private lateinit var socket: Socket
+    private lateinit var innerThread: InnerThread
     private lateinit var projectionManager: MediaProjectionManager
     private lateinit var projection: MediaProjection
     private lateinit var imageReader: ImageReader
@@ -48,12 +48,14 @@ class CooperationService : Service() {
         private lateinit var socket: Socket
         private val width = 432
         private val height = 960
+        private var running = true
 
         override fun run() {
             try {
                 socket = Socket(InetAddress.getByName(ip), port)
                 val out = DataOutputStream(socket.getOutputStream())
-                while (true) {
+                running = true
+                while (running) {
                     var image = imageReader.acquireLatestImage() ?: continue
                     val planes = image.planes
                     val buffer = planes[0].buffer
@@ -68,11 +70,22 @@ class CooperationService : Service() {
             } catch (e:Exception) {
                 Log.e(TAG, e.toString())
             }
+
+            socket.close()
+        }
+
+        fun exit() {
+            running = false
         }
     }
 
     override fun onBind(intent: Intent): IBinder {
         TODO("Return the communication channel to the service.")
+    }
+
+    override fun onDestroy() {
+        innerThread.exit()
+        super.onDestroy()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -92,7 +105,7 @@ class CooperationService : Service() {
 
             projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
             projection = projectionManager.getMediaProjection(resultCode, intent)
-            val display = projection.createVirtualDisplay(
+            projection.createVirtualDisplay(
                 "cooperation",
                 width,
                 height,
@@ -103,7 +116,7 @@ class CooperationService : Service() {
                 null
             )
 
-            var innerThread = InnerThread(ip, port, imageReader)
+            innerThread = InnerThread(ip, port, imageReader)
             innerThread.start()
         } catch (e:Exception) {
             Log.e("CooperationActivity", e.toString())

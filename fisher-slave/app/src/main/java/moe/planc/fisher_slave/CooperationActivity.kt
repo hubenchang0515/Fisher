@@ -11,6 +11,7 @@ import android.widget.Toast
 class CooperationActivity : AppCompatActivity() {
     private lateinit var projectionManager: MediaProjectionManager
     private lateinit var projectionData: Intent
+    private lateinit var serviceIntent: Intent
     private var ip = ""
     private var port = 0
 
@@ -25,6 +26,11 @@ class CooperationActivity : AppCompatActivity() {
         startActivityForResult(projectionManager.createScreenCaptureIntent(), 1)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        stopService(serviceIntent)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -34,11 +40,11 @@ class CooperationActivity : AppCompatActivity() {
         }
 
         projectionData = data
-        val intent = Intent(this, CooperationService::class.java)
-        intent.putExtra("ip", ip)
-        intent.putExtra("port", port)
-        intent.putExtra("resultCode", resultCode)
-        intent.putExtras(data)
-        startService(intent)
+        serviceIntent = Intent(this, CooperationService::class.java)
+        serviceIntent.putExtra("ip", ip)
+        serviceIntent.putExtra("port", port)
+        serviceIntent.putExtra("resultCode", resultCode)
+        serviceIntent.putExtras(data)
+        startService(serviceIntent)
     }
 }

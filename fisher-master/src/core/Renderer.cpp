@@ -16,13 +16,13 @@ Renderer::Renderer(const Window* window) noexcept:
     m_renderer = SDL_CreateRenderer(window->m_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
     if (m_renderer == nullptr)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "%s", SDL_GetError());
+        ERR("%s", SDL_GetError());
         m_renderer = SDL_CreateRenderer(window->m_window, -1, SDL_RENDERER_SOFTWARE | SDL_RENDERER_TARGETTEXTURE);
     }
 
     if (m_renderer == nullptr)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "%s", SDL_GetError());
+        ERR("%s", SDL_GetError());
     }
 }
 
@@ -44,7 +44,7 @@ bool Renderer::setTarget(Texture* target) noexcept
 
     if (SDL_SetRenderTarget(m_renderer, t) < 0)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "%s", SDL_GetError());
+        ERR("%s", SDL_GetError());
         return false;
     }
 
@@ -76,7 +76,7 @@ bool Renderer::setColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha)
 {
     if (SDL_SetRenderDrawColor(m_renderer, red, green, blue, alpha) < 0)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "%s", SDL_GetError());
+        ERR("%s", SDL_GetError());
         return false;
     }
 
@@ -116,7 +116,7 @@ bool Renderer::setBlendMode(SDL_BlendMode mode) noexcept
 {
     if (SDL_SetRenderDrawBlendMode(m_renderer, mode) < 0)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "%s", SDL_GetError());
+        ERR("%s", SDL_GetError());
         return false;
     }
 
@@ -129,7 +129,7 @@ bool Renderer::clear() const noexcept
     SDL_RenderClear(m_renderer);
     // if (SDL_RenderClear(m_renderer) < 0)
     // {
-    //     SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "%s", SDL_GetError());
+    //     ERR("%s", SDL_GetError());
     //     return false;
     // }
 
@@ -145,7 +145,7 @@ bool Renderer::copy(const Texture* src, SDL_Rect* srcRect, SDL_Rect* dstRect) co
 {
     if (SDL_RenderCopy(m_renderer, src->m_texture, srcRect, dstRect) < 0)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "%s", SDL_GetError());
+        ERR("%s", SDL_GetError());
         return false;
     }
 
@@ -156,7 +156,7 @@ bool Renderer::drawPoint(int x, int y)
 {
     if (SDL_RenderDrawPoint(m_renderer, x, y) < 0)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "%s", SDL_GetError());
+        ERR("%s", SDL_GetError());
         return false;
     }
 

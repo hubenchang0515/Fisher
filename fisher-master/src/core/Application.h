@@ -8,6 +8,7 @@
 #include <Window.h>
 #include <Renderer.h>
 #include <Job.h>
+#include <Log.h>
 
 namespace Fisher
 {
@@ -30,16 +31,22 @@ public:
     static const char* arg(int n) noexcept;
     static Window* window() noexcept;
     static Renderer* renderer() noexcept;
+
+    static Job* job() noexcept;
     static void setJob(Job* job, void* userdata=nullptr);
 
 private:
     int m_argc;
     char** m_argv;
+
     bool m_running;
     std::mutex m_runningMutex;
+
     Window* m_window;
     Renderer* m_renderer;
+
     Job* m_job;
+    std::mutex m_jobMutex;
 
     static Application* instance;
 

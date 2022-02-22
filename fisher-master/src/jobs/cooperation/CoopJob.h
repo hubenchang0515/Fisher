@@ -6,16 +6,12 @@
 #include <Texture.h>
 #include <QRCode.h>
 #include <Job.h>
-#include <NetBuffer.h>
+#include <Socket.h>
 
 #include <cerrno>
 #include <cstring>
 #include <string>
 #include <vector>
-#include <unistd.h>  
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
 #include <mutex>
 
 namespace Fisher
@@ -27,8 +23,6 @@ public:
     CoopRobot();
     ~CoopRobot();
 
-    void setSocket(int fd);
-
 protected:
     virtual void onCreate(void* userdata) override;
     virtual void onDraw() override;
@@ -38,11 +32,10 @@ private:
     int m_stride = 0;
     int m_width = 0;
     int m_height = 0;
-    int m_coopSocket = -1;
+    Socket  m_coopSocket;
     Texture* m_texture = nullptr;
     std::mutex m_mutex;
     void* m_data = nullptr;
-    NetBuffer* m_buffer = nullptr;
 
     void net();
 

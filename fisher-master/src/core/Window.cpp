@@ -20,7 +20,7 @@ Window::Window(const string& title, int width, int height) noexcept:
 
     if (m_window == nullptr)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "%s", SDL_GetError());
+        ERR("%s", SDL_GetError());
     }
 }
 

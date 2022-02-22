@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <Window.h>
+#include <Log.h>
 
 namespace Fisher
 {

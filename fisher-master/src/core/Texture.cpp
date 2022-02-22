@@ -8,7 +8,7 @@ Texture::Texture(const Renderer* renderer, int width, int height, int32_t format
     m_texture = SDL_CreateTexture(renderer->m_renderer, format, access, width, height);
     if (m_texture == nullptr)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "%s", SDL_GetError());
+        ERR("%s", SDL_GetError());
     }
 }
 
@@ -30,7 +30,7 @@ bool Texture::update(const void* data, int pitch, SDL_Rect* rect) noexcept
 {
     if (SDL_UpdateTexture(m_texture, rect, data, pitch) < 0)
     {
-        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "%s", SDL_GetError());
+        ERR("%s", SDL_GetError());
         return false;
     }
 

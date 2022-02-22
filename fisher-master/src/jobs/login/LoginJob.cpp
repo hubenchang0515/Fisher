@@ -16,9 +16,6 @@ LoginRobot::~LoginRobot()
 {
     if (m_texture != nullptr)
         delete m_texture;
-
-    if (m_listenSocket != -1)
-        close(m_listenSocket);
 }
 
 // 设置登录后跳转到目标
@@ -40,7 +37,7 @@ std::vector<std::string> LoginRobot::getIpList() noexcept
     {
         std::string ip = inet_ntoa(*(struct in_addr*)(hostEntry->h_addr_list[i]));
         ipList.emplace_back(ip);
-        SDL_Log("IP: %s\n", ip.c_str());
+        LOG("IP: %s\n", ip.c_str());
     }
 
     return ipList;
@@ -49,37 +46,10 @@ std::vector<std::string> LoginRobot::getIpList() noexcept
 // 监听并返回端口号
 int LoginRobot::listen() noexcept
 {
-    m_listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (m_listenSocket < 0)
-    {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", strerror(errno));
-        return -1;
-    }
-
-    struct sockaddr_in addr;
-    memset(&addr, 0 , sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(0);
-
-    if (bind(m_listenSocket, (struct sockaddr*)&addr, sizeof(addr)) < 0)
-    {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", strerror(errno));
-        return -1;
-    }
-
-    socklen_t len = sizeof(addr);
-    if (getsockname(m_listenSocket, (struct sockaddr*)&addr, &len) < 0)
-    {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", strerror(errno));
-        return -1;
-    }
-
-    int port = ntohs(addr.sin_port);
-    SDL_Log("port:%d", ntohs(addr.sin_port));
-
-    ::listen(m_listenSocket, 1);
-
+    m_listenSocket = Socket();
+    m_listenSocket.listen();
+    int port = m_listenSocket.port();
+    LOG("PORT: %d", port);
     return port;
 }
 
@@ -140,22 +110,19 @@ void LoginRobot::onEvent(SDL_Event& ev)
 {
     if (ev.type == SDL_QUIT)
     {
-        shutdown(m_listenSocket, SHUT_RDWR);
-        SDL_Log("close");
+        m_listenSocket.shutdown();
+        LOG("close");
     }
 }
 
 void LoginRobot::net()
 {
-    struct sockaddr_in addr;
-    socklen_t len = sizeof(addr);
-    m_coopSocket = accept(m_listenSocket, (struct sockaddr*)&addr, &len);
-    if (m_coopSocket < 0)
+    m_coopSocket = m_listenSocket.accept();
+    if (m_coopSocket.valid())
     {
-        return;
+        LOG("Get connection from %s:%d", m_coopSocket.ip().c_str(), m_coopSocket.port());
+        Application::setJob(m_target, &m_coopSocket);
     }
-    SDL_Log("Get connection from %s:%d", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
-    Application::setJob(m_target, &m_coopSocket);
 }
 
 }; // namespace Fisher

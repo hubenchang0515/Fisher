@@ -49,6 +49,15 @@ Renderer* Application::renderer() noexcept
     return Application::instance->m_renderer;
 }
 
+// static
+Job* Application::job() noexcept
+{
+    Application::instance->m_jobMutex.lock();
+    Job* job = Application::instance->m_job;
+    Application::instance->m_jobMutex.unlock();
+    return job;
+}
+
 // static 
 void Application::setJob(Job* job, void* userdata)
 {
@@ -57,24 +66,28 @@ void Application::setJob(Job* job, void* userdata)
         throw std::runtime_error("need bind window and renderer");
     }
 
-    if (Application::instance->m_job != nullptr)
+    Job* oldJob = Application::job();
+    if (oldJob != nullptr)
     {
-        Application::instance->m_job->onHide();
-        Application::instance->m_job->m_innerHide();
+        oldJob->onHide();
+        oldJob->m_innerHide();
     }
 
+    Application::instance->m_jobMutex.lock();
     Application::instance->m_job = job;
-    if (Application::instance->m_job == nullptr)
+    Application::instance->m_jobMutex.unlock();
+
+    if (job == nullptr)
     {
         return;
     }
 
-    if (Application::instance->m_job->m_state == Job::State::nil)
+    if (job->m_state == Job::State::nil)
     {
-        Application::instance->m_job->onCreate(userdata);
+        job->onCreate(userdata);
     }
-    Application::instance->m_job->onShow();
-    Application::instance->m_job->m_innerShow();
+    job->onShow();
+    job->m_innerShow();
 }
 
 Application::Application(int argc, char** argv)
@@ -107,7 +120,7 @@ void Application::bind(Window* window, Renderer* renderer) noexcept
 
 int Application::exec() noexcept
 {
-    if (Application::instance->m_job == nullptr)
+    if (Application::job() == nullptr)
         return EXIT_FAILURE;
 
     SDL_Event ev;
@@ -117,9 +130,13 @@ int Application::exec() noexcept
         ticks = SDL_GetTicks();
         while (SDL_PollEvent(&ev) > 0)
         {
-            Application::instance->m_job->onEvent(ev);
+            Application::job()->onEvent(ev);
+            if (ev.type == SDL_QUIT)
+            {
+                Application::quit();
+            }
         }
-        Application::instance->m_job->onDraw();
+        Application::job()->onDraw();
         int delay = 1000 / 60 + ticks - SDL_GetTicks();
         if (delay > 0)
             SDL_Delay(delay);
