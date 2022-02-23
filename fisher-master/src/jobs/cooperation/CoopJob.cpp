@@ -125,10 +125,12 @@ void CoopRobot::net()
         uncompress(jpeg, size, reinterpret_cast<void**>(&data), &outSize);
         if (m_size != outSize)
         {
+            m_mutex.lock();
             if (m_data != nullptr)
                 free(m_data);
 
             m_data = malloc(outSize);
+            m_mutex.unlock();
         }
 
         m_mutex.lock();
