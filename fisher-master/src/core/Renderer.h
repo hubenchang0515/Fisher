@@ -26,7 +26,7 @@ public:
     uint8_t alpha() const noexcept;
 
     bool setColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha=0xff) noexcept;
-    bool setRed(uint red) noexcept;
+    bool setRed(uint8_t red) noexcept;
     bool setGreen(uint8_t green) noexcept;
     bool setBlue(uint8_t blue) noexcept;
     bool setAlpha(uint8_t alpha) noexcept;
