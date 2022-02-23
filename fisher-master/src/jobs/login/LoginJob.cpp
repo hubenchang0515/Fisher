@@ -120,7 +120,7 @@ void LoginRobot::net()
     m_coopSocket = m_listenSocket.accept();
     if (m_coopSocket.valid())
     {
-        LOG("Get connection from %s:%d", m_coopSocket.ip().c_str(), m_coopSocket.port());
+        LOG("Get connection from %s:%d", m_coopSocket.peerIp().c_str(), m_coopSocket.peerPort());
         Application::setJob(m_target, &m_coopSocket);
     }
 }

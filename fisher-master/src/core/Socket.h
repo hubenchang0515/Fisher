@@ -31,6 +31,8 @@ public:
 
     string ip() const noexcept;
     int port() const noexcept;
+    string peerIp() const noexcept;
+    int peerPort() const noexcept;
 
     bool bind(const string& ip, int port) const noexcept;
     bool listen(int n=10) const noexcept;

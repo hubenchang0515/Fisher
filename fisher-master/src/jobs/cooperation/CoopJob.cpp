@@ -1,5 +1,6 @@
 #include <CoopJob.h>
 #include <thread>
+#include <jpeglib.h>
 
 namespace Fisher
 {
@@ -33,7 +34,7 @@ void CoopRobot::onDraw()
     m_mutex.lock();
     if (m_data != nullptr)
     {
-        m_texture->update(m_data, m_stride);
+        m_texture->update(m_data, m_width * 3); // RGB
         Application::renderer()->copy(m_texture);
     }
     Application::renderer()->present();
@@ -82,17 +83,19 @@ void CoopRobot::net()
 {
     while (Application::isRunning())
     {
-        uint32_t stride = 0;
-        uint32_t width = 0;
-        uint32_t height = 0;
-        m_coopSocket.read(&stride);
-        m_coopSocket.read(&width);
-        m_coopSocket.read(&height);
+        int32_t width = 0;
+        int32_t height = 0;
+        int32_t size = 0;
+        if (!m_coopSocket.read(&width) || !m_coopSocket.read(&height) || !m_coopSocket.read(&size))
+        {
+            Application::quit();
+            break;
+        }
 
-        if (stride == 0 || width == 0 || height == 0)
+        if (width <= 0 || height <= 0 || size < 0)
             continue;
 
-        if (stride > INT16_MAX || width > INT16_MAX || height > INT16_MAX)
+        if (width > INT16_MAX || height > INT16_MAX)
             continue;
 
         if (m_width != static_cast<int>(width) || m_height != static_cast<int>(height))
@@ -104,39 +107,68 @@ void CoopRobot::net()
             }
             m_width = static_cast<int>(width);
             m_height = static_cast<int>(height);
-            m_texture = new Texture(Application::renderer(), m_width, m_height, SDL_PIXELFORMAT_RGBA32);
+            m_texture = new Texture(Application::renderer(), m_width, m_height);
             Application::window()->resize(m_width, m_height);
             m_mutex.unlock();
         }
 
-        if (m_stride != static_cast<int>(stride) || m_height != static_cast<int>(height))
-        {
-            m_mutex.lock();
-            if (m_data != nullptr)
-            {
-                free(m_data);
-            }
+        uint8_t* jpeg = reinterpret_cast<uint8_t*>(malloc(size));
 
-            m_stride = static_cast<int>(stride);
-            m_height = static_cast<int>(height);
-            m_data = malloc(m_stride * m_height);
-            m_mutex.unlock();
-        }
-
-        void* data = malloc(m_stride * m_height);
-
-        if (!m_coopSocket.read(data, m_stride * m_height))
+        if (!m_coopSocket.read(jpeg, size))
         {
             Application::quit();
             break;
         }
 
+        uint8_t* data = nullptr;
+        size_t outSize;
+        uncompress(jpeg, size, reinterpret_cast<void**>(&data), &outSize);
+        if (m_size != outSize)
+        {
+            if (m_data != nullptr)
+                free(m_data);
+
+            m_data = malloc(outSize);
+        }
+
         m_mutex.lock();
-        memcpy(m_data, data, m_stride * m_height);
+        memcpy(m_data, data, outSize);
         m_mutex.unlock();
 
+        free(jpeg);
         free(data);
     }
+}
+
+bool CoopRobot::uncompress(const void* jpeg, size_t inSize, void** rgb, size_t* outSize)
+{
+    struct jpeg_decompress_struct cinfo;
+    struct jpeg_error_mgr jerr;
+    cinfo.err=jpeg_std_error(&jerr);
+    jpeg_create_decompress(&cinfo);
+    
+    jpeg_mem_src(&cinfo, (const unsigned char*)(jpeg), inSize);
+    
+    jpeg_read_header(&cinfo, false);
+    jpeg_calc_output_dimensions(&cinfo);
+
+    size_t rowSize = cinfo.output_components * cinfo.output_width;
+    *outSize = rowSize * cinfo.output_height;
+    *rgb = malloc(*outSize);
+
+    JSAMPARRAY buffer = cinfo.mem->alloc_sarray((j_common_ptr)(&cinfo), JPOOL_IMAGE, rowSize, 1);
+
+    jpeg_start_decompress(&cinfo);
+    for(uint8_t* ptr = reinterpret_cast<uint8_t*>(*rgb); cinfo.output_scanline < cinfo.output_height; ptr += rowSize)
+    {
+        jpeg_read_scanlines(&cinfo, buffer, 1);
+        memcpy(ptr, buffer[0], rowSize);
+    }
+
+    jpeg_finish_decompress(&cinfo);
+    jpeg_destroy_decompress(&cinfo);
+
+    return true;
 }
 
 }; // namespace Fisher

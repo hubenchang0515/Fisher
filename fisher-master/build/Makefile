@@ -11,7 +11,7 @@ clean:
 	rm -f fake-client.o
 
 fisher : main.o Socket.o Window.o Application.o Job.o Renderer.o Texture.o QRCode.o CoopJob.o LoginJob.o  
-	g++ -o $@ $^ -lqrencode -lSDL2 -pthread -g 
+	g++ -o $@ $^ -ljpeg -lqrencode -lSDL2 -pthread -g 
 
 main.o: ../src/main.cpp ../src/core/Application.h ../src/core/Window.h \
  ../src/core/Log.h ../src/core/Renderer.h ../src/core/Job.h \

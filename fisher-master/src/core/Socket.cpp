@@ -91,6 +91,33 @@ int Socket::port() const noexcept
     return ntohs(addr.sin_port);
 }
 
+string Socket::peerIp() const noexcept
+{
+    struct sockaddr_in addr;
+    socklen_t len = sizeof(addr);
+    if (getpeername(m_fd, reinterpret_cast<struct sockaddr*>(&addr), &len) < 0)
+    {
+        ERR("%s", strerror(errno));
+        return "";
+    }
+
+    return inet_ntoa(addr.sin_addr);
+}
+
+int Socket::peerPort() const noexcept
+{
+    struct sockaddr_in addr;
+    socklen_t len = sizeof(addr);
+    if (getpeername(m_fd, reinterpret_cast<struct sockaddr*>(&addr), &len) < 0)
+    {
+        ERR("%s", strerror(errno));
+        return -1;
+    }
+
+    return ntohs(addr.sin_port);
+}
+
+
 bool Socket::bind(const string& ip, int port) const noexcept
 {
     struct sockaddr_in addr;
@@ -222,11 +249,18 @@ bool Socket::read(int8_t* data) const noexcept
 
 bool Socket::read(uint8_t* data) const noexcept
 {
-    if (recv(m_fd, data, sizeof(uint8_t), MSG_WAITALL) != sizeof(uint8_t))
+    ssize_t got = recv(m_fd, data, sizeof(uint8_t), MSG_WAITALL);
+    if (got < 0)
     {
         ERR("%s", strerror(errno));
         return false;
     }
+    else if (got == 0)
+    {
+        LOG("client disconnected");
+            return false;
+    }
+
 
     return true;
 }
@@ -239,11 +273,18 @@ bool Socket::read(int16_t* data) const noexcept
 bool Socket::read(uint16_t* data) const noexcept
 {
     uint16_t netData;
-    if (recv(m_fd, &netData, sizeof(uint16_t), MSG_WAITALL) != sizeof(uint16_t))
+    ssize_t got = recv(m_fd, &netData, sizeof(uint16_t), MSG_WAITALL);
+    if (got < 0)
     {
         ERR("%s", strerror(errno));
         return false;
     }
+    else if (got == 0)
+    {
+        LOG("client disconnected");
+            return false;
+    }
+
 
     *data = ntohs(netData);
     return true;
@@ -257,10 +298,16 @@ bool Socket::read(int32_t* data) const noexcept
 bool Socket::read(uint32_t* data) const noexcept
 {
     uint32_t netData;
-    if (recv(m_fd, &netData, sizeof(uint32_t), MSG_WAITALL) != sizeof(uint32_t))
+    ssize_t got = recv(m_fd, &netData, sizeof(uint32_t), MSG_WAITALL);
+    if (got < 0)
     {
         ERR("%s", strerror(errno));
         return false;
+    }
+    else if (got == 0)
+    {
+        LOG("client disconnected");
+            return false;
     }
 
     *data = ntohl(netData);

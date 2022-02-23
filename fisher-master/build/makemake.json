@@ -9,7 +9,7 @@
             "cxxflags": "-O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g",
             "ar": "ar",
             "arflags": "rcs",
-            "libs": "-lqrencode -lSDL2 -pthread -g",
+            "libs": "-ljpeg -lqrencode -lSDL2 -pthread -g",
             "install": "",
             "cmd": "",
             "sources": [
