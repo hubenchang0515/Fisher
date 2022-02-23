@@ -1,5 +1,6 @@
 package moe.planc.fisher_slave
 
+import android.graphics.Bitmap
 import android.graphics.PixelFormat
 import android.hardware.display.VirtualDisplay
 import android.media.ImageReader
@@ -7,9 +8,12 @@ import android.os.ConditionVariable
 import android.os.Handler
 import android.util.Log
 import android.view.Display
+import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.net.InetAddress
 import java.net.Socket
+import kotlin.experimental.and
+import kotlin.experimental.or
 
 class CooperationThread(
     private val ip: String?,
@@ -44,7 +48,13 @@ class CooperationThread(
     }
 
     override fun run() {
-            socket = Socket(InetAddress.getByName(ip), port)
+            try {
+                socket = Socket(InetAddress.getByName(ip), port)
+            } catch (e:Exception) {
+                Log.e(TAG, e.toString())
+                return
+            }
+
             val out = DataOutputStream(socket.getOutputStream())
 
             running = true
@@ -55,13 +65,17 @@ class CooperationThread(
                 try {
                     val planes = image.planes
                     val buffer = planes[0].buffer
-                    val byteArray = ByteArray(planes[0].rowStride * image.height)
-                    buffer.get(byteArray)
+                    var bitmap = Bitmap.createBitmap(planes[0].rowStride / 4, image.height, Bitmap.Config.ARGB_8888)
+                    bitmap.copyPixelsFromBuffer(buffer)
+                    bitmap = Bitmap.createBitmap(bitmap, 0, 0, image.width, image.height);
 
-                    out.writeInt(planes[0].rowStride)
+                    var byteArrayOutputStream = ByteArrayOutputStream()
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 85, byteArrayOutputStream)
+                    byteArrayOutputStream.flush()
                     out.writeInt(image.width)
                     out.writeInt(image.height)
-                    out.write(byteArray)
+                    out.writeInt(byteArrayOutputStream.size())
+                    out.write(byteArrayOutputStream.toByteArray())
                 } catch (e: Exception) {
                     Log.e(TAG, e.toString())
                 }

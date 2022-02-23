@@ -9,6 +9,7 @@ import android.util.Log
 import android.widget.Toast
 
 class CooperationActivity : AppCompatActivity() {
+    private val TAG = "CooperationActivity"
     private lateinit var projectionManager: MediaProjectionManager
     private lateinit var projectionData: Intent
     private lateinit var serviceIntent: Intent
@@ -27,9 +28,13 @@ class CooperationActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
-        if (serviceIntent != null) {
-            stopService(serviceIntent)
+        try {
+            super.onDestroy()
+            if (serviceIntent != null) {
+                stopService(serviceIntent)
+            }
+        } catch (e:Exception) {
+            Log.e(TAG, e.toString())
         }
     }
 
