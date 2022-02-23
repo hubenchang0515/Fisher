@@ -14,6 +14,7 @@ import android.content.Context
 
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.Point
 import android.media.ImageReader
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -45,8 +46,12 @@ class CooperationService : Service() {
     }
 
     override fun onDestroy() {
-        innerThread.exit()
-        super.onDestroy()
+        try {
+            innerThread.exit()
+            super.onDestroy()
+        } catch (e:Exception) {
+            Log.e(TAG, e.toString())
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
@@ -85,7 +90,10 @@ class CooperationService : Service() {
             val window = getSystemService(WINDOW_SERVICE) as WindowManager
             val display = window.defaultDisplay
 
-            innerThread = CooperationThread(ip, port, width, height,
+            var size = Point()
+            display.getRealSize(size)
+
+            innerThread = CooperationThread(ip, port, (size.x / 2.5).toInt(), (size.y/2.5).toInt(),
                 display!!, virtualDisplay)
             innerThread.start()
         } catch (e:Exception) {
