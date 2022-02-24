@@ -35,11 +35,7 @@ class CooperationService : Service() {
     private lateinit var innerThread: CooperationThread
     private lateinit var projectionManager: MediaProjectionManager
     private lateinit var projection: MediaProjection
-    private lateinit var imageReader: ImageReader
-    private lateinit var virtualDisplay: VirtualDisplay
     private val pid = android.os.Process.myPid();
-    private var width = 432
-    private var height = 960
 
     override fun onBind(intent: Intent): IBinder {
         TODO("Return the communication channel to the service.")
@@ -71,30 +67,11 @@ class CooperationService : Service() {
 
             projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
             projection = projectionManager.getMediaProjection(resultCode, intent)
-            virtualDisplay = projection.createVirtualDisplay(
-                "cooperation",
-                width,
-                height,
-                1,
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                null,
-                null,
-                null
-            )
-
-            if (virtualDisplay == null) {
-                Log.e(TAG, "virtual display is null")
-                return START_NOT_STICKY
-            }
 
             val window = getSystemService(WINDOW_SERVICE) as WindowManager
             val display = window.defaultDisplay
 
-            var size = Point()
-            display.getRealSize(size)
-
-            innerThread = CooperationThread(ip, port, (size.x / 2.5).toInt(), (size.y/2.5).toInt(),
-                display!!, virtualDisplay)
+            innerThread = CooperationThread(ip, port, projection, display!!)
             innerThread.start()
         } catch (e:Exception) {
             Log.e("CooperationActivity", e.toString())

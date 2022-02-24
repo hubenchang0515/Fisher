@@ -2,8 +2,11 @@ package moe.planc.fisher_slave
 
 import android.graphics.Bitmap
 import android.graphics.PixelFormat
+import android.graphics.Point
+import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.ImageReader
+import android.media.projection.MediaProjection
 import android.os.ConditionVariable
 import android.os.Handler
 import android.util.Log
@@ -18,27 +21,42 @@ import kotlin.experimental.or
 class CooperationThread(
     private val ip: String?,
     private val port: Int,
-    private var width: Int,
-    private var height: Int,
-    private var display: Display,
-    private var virtualDisplay: VirtualDisplay
+    private val projection: MediaProjection,
+    private val display: Display,
     ) : Thread() {
 
     private val TAG = "CooperationThread"
-    private var handler: Handler = Handler()
+    private val handler: Handler
+    private val virtualDisplay: VirtualDisplay
     private var imageReader: ImageReader
-    private var listener: ImageAvailableListener
-    private lateinit var socket: Socket
-    private var condition = ConditionVariable(false)
+    private val listener: ImageAvailableListener
+    private val condition = ConditionVariable(false)
     private var running = true
     private var rotation = 0
+    private var width = 0
+    private var height = 0
+    private lateinit var socket: Socket
 
     init {
+        val size = Point()
+        display.getRealSize(size)
+        width = (size.x / 2.5).toInt()
+        height = (size.y / 2.5).toInt()
+        handler = Handler()
         listener = ImageAvailableListener(condition)
         imageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2)
         imageReader.setOnImageAvailableListener(listener, handler)
+        virtualDisplay = projection.createVirtualDisplay(
+            "cooperation",
+            width,
+            height,
+            1,
+            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+            null,
+            null,
+            null
+        )
         virtualDisplay.surface = imageReader.surface
-
     }
 
     private class ImageAvailableListener(private var condition: ConditionVariable) : ImageReader.OnImageAvailableListener {
