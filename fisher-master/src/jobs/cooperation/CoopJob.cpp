@@ -14,9 +14,6 @@ CoopRobot::~CoopRobot()
 {
     if (m_data != nullptr)
         free(m_data);
-
-    if (m_texture != nullptr)
-        delete m_texture;
 }
 
 void CoopRobot::onCreate(void* userdata)
@@ -28,14 +25,22 @@ void CoopRobot::onCreate(void* userdata)
 
 void CoopRobot::onDraw()
 {
-    Application::renderer()->setTarget();
-    Application::renderer()->clear();
+    if (m_width == 0 || m_height == 0)
+        return;
+
+    if (m_width != Application::window()->width() || m_height != Application::window()->height())
+    {
+        Application::window()->resize(m_width, m_height);
+        m_texture.realloc(Application::renderer(), m_width, m_height);
+    }
 
     m_mutex.lock();
     if (m_data != nullptr)
     {
-        m_texture->update(m_data, m_width * 3); // RGB
-        Application::renderer()->copy(m_texture);
+        Application::renderer()->setTarget(&m_texture);
+        m_texture.update(m_data, m_width * 3); // RGB
+        Application::renderer()->setTarget();
+        Application::renderer()->copy(&m_texture);
     }
     Application::renderer()->present();
     m_mutex.unlock();
@@ -101,14 +106,8 @@ void CoopRobot::net()
         if (m_width != static_cast<int>(width) || m_height != static_cast<int>(height))
         {
             m_mutex.lock();
-            if (m_texture != nullptr) 
-            {
-                delete m_texture;
-            }
             m_width = static_cast<int>(width);
             m_height = static_cast<int>(height);
-            m_texture = new Texture(Application::renderer(), m_width, m_height);
-            Application::window()->resize(m_width, m_height);
             m_mutex.unlock();
         }
 
@@ -123,6 +122,7 @@ void CoopRobot::net()
         uint8_t* data = nullptr;
         size_t outSize;
         uncompress(jpeg, size, reinterpret_cast<void**>(&data), &outSize);
+
         if (m_size != outSize)
         {
             m_mutex.lock();

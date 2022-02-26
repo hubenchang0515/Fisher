@@ -1,6 +1,9 @@
 #include <stdexcept>
 #include <Renderer.h>
 #include <Texture.h>
+#include <Application.h>
+
+#define CHECK_MAIN_THREAD() do { if(std::this_thread::get_id() != Application::mainThreadId()) WAR("render out main thread"); }while(0)
 
 namespace Fisher
 {
@@ -40,6 +43,7 @@ Texture* Renderer::target() const noexcept
 
 bool Renderer::setTarget(Texture* target) noexcept
 {
+    CHECK_MAIN_THREAD();
     SDL_Texture* t = target == nullptr ? nullptr : target->m_texture;
 
     if (SDL_SetRenderTarget(m_renderer, t) < 0)
@@ -74,6 +78,7 @@ uint8_t Renderer::alpha() const noexcept
 
 bool Renderer::setColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha) noexcept
 {
+    CHECK_MAIN_THREAD();
     if (SDL_SetRenderDrawColor(m_renderer, red, green, blue, alpha) < 0)
     {
         ERR("%s", SDL_GetError());
@@ -114,6 +119,7 @@ SDL_BlendMode Renderer::blendMode() const noexcept
 
 bool Renderer::setBlendMode(SDL_BlendMode mode) noexcept
 {
+    CHECK_MAIN_THREAD();
     if (SDL_SetRenderDrawBlendMode(m_renderer, mode) < 0)
     {
         ERR("%s", SDL_GetError());
@@ -126,23 +132,25 @@ bool Renderer::setBlendMode(SDL_BlendMode mode) noexcept
 
 bool Renderer::clear() const noexcept
 {
-    SDL_RenderClear(m_renderer);
-    // if (SDL_RenderClear(m_renderer) < 0)
-    // {
-    //     ERR("%s", SDL_GetError());
-    //     return false;
-    // }
+    CHECK_MAIN_THREAD();
+    if (SDL_RenderClear(m_renderer) < 0)
+    {
+        ERR("%s", SDL_GetError());
+        return false;
+    }
 
     return true;
 }
 
 void Renderer::present() const noexcept
 {
+    CHECK_MAIN_THREAD();
     SDL_RenderPresent(m_renderer);
 }
 
 bool Renderer::copy(const Texture* src, SDL_Rect* srcRect, SDL_Rect* dstRect) const noexcept
 {
+    CHECK_MAIN_THREAD();
     if (SDL_RenderCopy(m_renderer, src->m_texture, srcRect, dstRect) < 0)
     {
         ERR("%s", SDL_GetError());
@@ -154,6 +162,7 @@ bool Renderer::copy(const Texture* src, SDL_Rect* srcRect, SDL_Rect* dstRect) co
 
 bool Renderer::drawPoint(int x, int y)
 {
+    CHECK_MAIN_THREAD();
     if (SDL_RenderDrawPoint(m_renderer, x, y) < 0)
     {
         ERR("%s", SDL_GetError());

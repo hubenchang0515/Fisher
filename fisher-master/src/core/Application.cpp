@@ -1,4 +1,5 @@
 #include <Application.h>
+#include <Socket.h>
 #include <SDL2/SDL.h>
 #include <stdexcept>
 
@@ -7,6 +8,12 @@ namespace Fisher
 
 // static
 Application* Application::instance = nullptr;
+
+// static 
+std::thread::id Application::mainThreadId() noexcept
+{
+    return Application::instance->m_mainThreadId;
+}
 
 // static
 bool Application::isRunning() noexcept
@@ -101,6 +108,9 @@ Application::Application(int argc, char** argv):
         return;
     }
 
+    m_mainThreadId = std::this_thread::get_id();
+
+    Socket::init();
     SDL_Init(SDL_INIT_EVERYTHING);
 
     m_argc = argc;

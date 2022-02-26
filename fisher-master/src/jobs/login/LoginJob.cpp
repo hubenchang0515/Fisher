@@ -9,13 +9,12 @@ LoginRobot::LoginRobot()
     auto ipList = getIpList();
     auto port = listen();
     auto content = info(ipList, port);
-    qrcode(content);
+    genQrCode(content);
 }
 
 LoginRobot::~LoginRobot()
 {
-    if (m_texture != nullptr)
-        delete m_texture;
+
 }
 
 // 设置登录后跳转到目标
@@ -29,16 +28,20 @@ std::vector<std::string> LoginRobot::getIpList() noexcept
 {
     std::vector<std::string> ipList;
 
-    char hostName[_SC_HOST_NAME_MAX];
-    gethostname(hostName, _SC_HOST_NAME_MAX);
+    #ifdef OS_WIN
 
-    struct hostent* hostEntry = gethostbyname(hostName);
-    for(int i = 0; hostEntry->h_addr_list[i]; i++) 
-    {
-        std::string ip = inet_ntoa(*(struct in_addr*)(hostEntry->h_addr_list[i]));
-        ipList.emplace_back(ip);
-        LOG("IP: %s\n", ip.c_str());
-    }
+    #else
+        char hostName[_SC_HOST_NAME_MAX];
+        gethostname(hostName, _SC_HOST_NAME_MAX);
+
+        struct hostent* hostEntry = gethostbyname(hostName);
+        for(int i = 0; hostEntry->h_addr_list[i]; i++) 
+        {
+            std::string ip = inet_ntoa(*(struct in_addr*)(hostEntry->h_addr_list[i]));
+            ipList.emplace_back(ip);
+            LOG("IP: %s\n", ip.c_str());
+        }
+    #endif
 
     return ipList;
 }
@@ -47,6 +50,7 @@ std::vector<std::string> LoginRobot::getIpList() noexcept
 int LoginRobot::listen() noexcept
 {
     m_listenSocket = Socket();
+    m_listenSocket.bind();
     m_listenSocket.listen();
     int port = m_listenSocket.port();
     LOG("PORT: %d", port);
@@ -60,19 +64,18 @@ std::string LoginRobot::info(std::vector<std::string> ipList, int port) noexcept
     for (auto& ip : ipList)
     {
         content += "IP: " + ip + "\n";
-        content += "PORT: " + std::to_string(port) + "\n";
     }
-
+    content += "PORT: " + std::to_string(port) + "\n";
     return content;
 }
 
 // 生成二维码
-Texture* LoginRobot::qrcode(const std::string& content) noexcept
+void LoginRobot::genQrCode(const std::string& content) noexcept
 {
     Renderer* renderer = Application::renderer();
     QRCode qrcode = QRCode::create(content);
-    m_texture = new Texture(renderer, qrcode.width(), qrcode.width());
-    renderer->setTarget(m_texture);
+    m_texture.realloc(renderer, qrcode.width(), qrcode.width());
+    renderer->setTarget(&m_texture);
     for (int y = 0; y < qrcode.width(); y++)
     {
         for (int x = 0; x < qrcode.width(); x++)
@@ -86,7 +89,6 @@ Texture* LoginRobot::qrcode(const std::string& content) noexcept
         }
     }
     renderer->setTarget();
-    return m_texture;
 }
 
 
@@ -102,7 +104,7 @@ void LoginRobot::onDraw()
     Renderer* renderer = Application::renderer();
     renderer->setTarget();
     renderer->clear();
-    renderer->copy(m_texture);
+    renderer->copy(&m_texture);
     renderer->present();
 }
 

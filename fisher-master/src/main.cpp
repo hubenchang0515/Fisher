@@ -1,16 +1,14 @@
 #include <Application.h>
 #include <Window.h>
 #include <Renderer.h>
-#include <Texture.h>
-#include <QRCode.h>
 #include <LoginJob.h>
 #include <CoopJob.h>
 
 using namespace Fisher;
 
-int main()
+int main(int argc, char* argv[])
 {
-    Application app;
+    Application app{argc, argv};
 
     Window window("fisher", 320, 320);
     Renderer renderer(&window);

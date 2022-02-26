@@ -1,5 +1,9 @@
 #include <stdexcept>
 #include <Window.h>
+#include <Application.h>
+#include <thread>
+
+#define CHECK_MAIN_THREAD() do { if(std::this_thread::get_id() != Application::mainThreadId()) WAR("control window out main thread"); }while(0)
 
 namespace Fisher
 {
@@ -37,6 +41,7 @@ string Window::title() const noexcept
 
 void Window::setTitle(const string& title) noexcept
 {
+    CHECK_MAIN_THREAD();
     SDL_SetWindowTitle(m_window, title.c_str());
 }
 
@@ -52,18 +57,21 @@ int Window::height() const noexcept
 
 void Window::setWidth(int width) noexcept
 {
+    CHECK_MAIN_THREAD();
     SDL_SetWindowSize(m_window, width, m_height);
     m_width = width;
 }
 
 void Window::setHeight(int height) noexcept
 {
+    CHECK_MAIN_THREAD();
     SDL_SetWindowSize(m_window, m_width, height);
     m_height = height;
 }
 
 void Window::resize(int width, int height) noexcept
 {
+    CHECK_MAIN_THREAD();
     SDL_SetWindowSize(m_window, width, height);
     m_width = width;
     m_height = height;

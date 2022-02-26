@@ -1,13 +1,37 @@
 #ifndef FISHER_SOCKET_H
 #define FISHER_SOCKET_H
 
-#include <unistd.h>  
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <string>
+#include <base.h>
 
-#include <Log.h>
+#ifdef OS_WIN
+    #include <winsock2.h>
+    
+    #define SOCK_T SOCKET
+    #define SOCK_INVALID(sock) (sock == 0)
+    #define SOCKLEN_T int
+    #define SOCK_CLOSE(sock) closesocket(sock)
+    #define SOCK_ERROR() strerror(WSAGetLastError())
+    #define SOCK_SHUT_FLAG SD_BOTH
+    #define SOCK_RECV(sock, buf, bytes, flags) recv(sock, reinterpret_cast<char*>(buf), bytes, flags)
+    #define SOCK_SEND(sock, buf, bytes, flags) send(sock, reinterpret_cast<char*>(buf), bytes, flags)
+#else
+    #include <unistd.h>  
+    #include <netdb.h>
+    #include <arpa/inet.h>
+    #include <sys/socket.h>
+
+    #define SOCK_T int
+    #define SOCK_INVALID(sock) (sock < 0)
+    #define SOCKLEN_T socklen_t
+    #define SOCK_CLOSE(sock) ::close(sock)
+    #define SOCK_ERROR() strerror(errno)
+    #define SOCK_SHUT_FLAG SHUT_RDWR
+    #define SOCK_RECV(sock, buf, bytes, flags) recv(sock, reinterpret_cast<void*>(buf), bytes, flags)
+    #define SOCK_SEND(sock, buf, bytes, flags) send(sock, reinterpret_cast<void*>(buf), bytes, flags)
+#endif
+
+#include <string>
+#include <base.h>
 
 namespace Fisher
 {
@@ -17,6 +41,8 @@ using std::string;
 class Socket
 {
 public:
+    static void init();
+
     Socket() noexcept;
     Socket(int domain, int type, int protocol) noexcept;
     Socket(const Socket& src) = delete;
@@ -34,7 +60,7 @@ public:
     string peerIp() const noexcept;
     int peerPort() const noexcept;
 
-    bool bind(const string& ip, int port) const noexcept;
+    bool bind(const string& ip="0.0.0.0", int port=0) const noexcept;
     bool listen(int n=10) const noexcept;
     Socket accept(string* ip=nullptr, int* port=nullptr) const noexcept;
     bool shutdown() const noexcept;
@@ -56,9 +82,9 @@ public:
     bool read(void* data, size_t len) const noexcept;
 
 private:
-    int m_fd;
+    SOCK_T m_fd;
 
-    Socket(int fd) noexcept;
+    Socket(SOCK_T fd) noexcept;
 
 }; // class Socket
 

@@ -27,7 +27,7 @@ public:
     std::vector<std::string> getIpList() noexcept;
     int listen() noexcept;
     std::string info(std::vector<std::string> ipList, int port) noexcept;
-    Texture* qrcode(const std::string& content) noexcept;
+    void genQrCode(const std::string& content) noexcept;
 
 protected:
     virtual void onCreate(void* userdata) override;
@@ -36,7 +36,7 @@ protected:
 
 private:
     Job* m_target;
-    Texture* m_texture = nullptr;
+    Texture m_texture;
     Socket m_listenSocket;
     Socket m_coopSocket;
 

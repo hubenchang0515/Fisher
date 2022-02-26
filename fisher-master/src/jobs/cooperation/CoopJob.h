@@ -32,7 +32,7 @@ private:
     int m_width = 0;
     int m_height = 0;
     Socket  m_coopSocket;
-    Texture* m_texture = nullptr;
+    Texture m_texture;
     std::mutex m_mutex;
     void* m_data = nullptr;
     size_t m_size = 0;

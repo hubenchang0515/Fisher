@@ -3,22 +3,15 @@
         {
             "name": "fisher",
             "type": "executable",
-            "cc": "gcc",
-            "cxx": "g++",
-            "cflags": "-O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g",
             "cxxflags": "-O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g",
-            "ar": "ar",
-            "arflags": "rcs",
-            "libs": "-ljpeg -lqrencode -lSDL2 -pthread -g",
-            "install": "",
-            "cmd": "",
+            "libs": "-pthread -ljpeg -lqrencode -lSDL2",
+            "libs.windows": "-lwsock32 -ljpeg -lqrencode -lmingw32 -lSDL2main -lSDL2",
             "sources": [
                 "../src/main.cpp",
                 "../src/core",
                 "../src/jobs/cooperation",
                 "../src/jobs/login"
-            ],
-            "depends": []
+            ]
         },
         {
             "name": "fake-client",

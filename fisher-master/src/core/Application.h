@@ -8,7 +8,7 @@
 #include <Window.h>
 #include <Renderer.h>
 #include <Job.h>
-#include <Log.h>
+#include <base.h>
 
 namespace Fisher
 {
@@ -25,6 +25,7 @@ public:
     void bind(Window* window, Renderer* renderer) noexcept;
     int exec() noexcept;
 
+    static std::thread::id mainThreadId() noexcept;
     static bool isRunning() noexcept;
     static void quit() noexcept;
     static int argc() noexcept;
@@ -38,6 +39,8 @@ public:
 private:
     int m_argc;
     char** m_argv;
+
+    std::thread::id m_mainThreadId;
 
     bool m_running;
     std::mutex m_runningMutex;
