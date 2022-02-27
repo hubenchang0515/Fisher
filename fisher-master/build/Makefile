@@ -11,34 +11,36 @@ clean:
 	rm -f fake-client.o
 
 fisher : main.o Socket.o Window.o Application.o Job.o Renderer.o Texture.o QRCode.o CoopJob.o LoginJob.o  
-	g++ -o $@ $^ -ljpeg -lqrencode -lSDL2 -pthread -g 
+	g++ -o $@ $^ -pthread -ljpeg -lqrencode -lSDL2 
 
 main.o: ../src/main.cpp ../src/core/Application.h ../src/core/Window.h \
- ../src/core/Log.h ../src/core/Renderer.h ../src/core/Job.h \
- ../src/core/Texture.h ../src/core/QRCode.h ../src/jobs/login/LoginJob.h \
+ ../src/core/base.h ../src/core/Renderer.h ../src/core/Job.h \
+ ../src/jobs/login/LoginJob.h ../src/core/Texture.h ../src/core/QRCode.h \
  ../src/core/Socket.h ../src/jobs/cooperation/CoopJob.h
 	g++ -c  ../src/main.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g 
 
-Socket.o: ../src/core/Socket.cpp ../src/core/Socket.h ../src/core/Log.h
+Socket.o: ../src/core/Socket.cpp ../src/core/Socket.h ../src/core/base.h
 	g++ -c  ../src/core/Socket.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g 
 
-Window.o: ../src/core/Window.cpp ../src/core/Window.h ../src/core/Log.h
+Window.o: ../src/core/Window.cpp ../src/core/Window.h ../src/core/base.h \
+ ../src/core/Application.h ../src/core/Renderer.h ../src/core/Job.h
 	g++ -c  ../src/core/Window.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g 
 
 Application.o: ../src/core/Application.cpp ../src/core/Application.h \
- ../src/core/Window.h ../src/core/Log.h ../src/core/Renderer.h \
- ../src/core/Job.h
+ ../src/core/Window.h ../src/core/base.h ../src/core/Renderer.h \
+ ../src/core/Job.h ../src/core/Socket.h
 	g++ -c  ../src/core/Application.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g 
 
 Job.o: ../src/core/Job.cpp ../src/core/Job.h
 	g++ -c  ../src/core/Job.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g 
 
 Renderer.o: ../src/core/Renderer.cpp ../src/core/Renderer.h \
- ../src/core/Window.h ../src/core/Log.h ../src/core/Texture.h
+ ../src/core/Window.h ../src/core/base.h ../src/core/Texture.h \
+ ../src/core/Application.h ../src/core/Job.h
 	g++ -c  ../src/core/Renderer.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g 
 
 Texture.o: ../src/core/Texture.cpp ../src/core/Texture.h \
- ../src/core/Renderer.h ../src/core/Window.h ../src/core/Log.h
+ ../src/core/Renderer.h ../src/core/Window.h ../src/core/base.h
 	g++ -c  ../src/core/Texture.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g 
 
 QRCode.o: ../src/core/QRCode.cpp ../src/core/QRCode.h
@@ -46,13 +48,13 @@ QRCode.o: ../src/core/QRCode.cpp ../src/core/QRCode.h
 
 CoopJob.o: ../src/jobs/cooperation/CoopJob.cpp \
  ../src/jobs/cooperation/CoopJob.h ../src/core/Application.h \
- ../src/core/Window.h ../src/core/Log.h ../src/core/Renderer.h \
+ ../src/core/Window.h ../src/core/base.h ../src/core/Renderer.h \
  ../src/core/Job.h ../src/core/Texture.h ../src/core/QRCode.h \
  ../src/core/Socket.h
 	g++ -c  ../src/jobs/cooperation/CoopJob.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g 
 
 LoginJob.o: ../src/jobs/login/LoginJob.cpp ../src/jobs/login/LoginJob.h \
- ../src/core/Application.h ../src/core/Window.h ../src/core/Log.h \
+ ../src/core/Application.h ../src/core/Window.h ../src/core/base.h \
  ../src/core/Renderer.h ../src/core/Job.h ../src/core/Texture.h \
  ../src/core/QRCode.h ../src/core/Socket.h
 	g++ -c  ../src/jobs/login/LoginJob.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g 
