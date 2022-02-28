@@ -16,8 +16,8 @@
         {
             "name": "fake-client",
             "type": "executable",
-            "cflags": "-O2 -W -Wall",
-            "libs": "-pthread",
+            "cflags": "-O2 -W -Wall -I../test -g",
+            "libs": "-ljpeg -lxcb -pthread -g",
             "sources": [
                 "../test"
             ]

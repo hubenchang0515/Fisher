@@ -8,7 +8,7 @@ install: all
 
 clean:
 	rm -f main.o Socket.o Window.o Application.o Job.o Renderer.o Texture.o QRCode.o CoopJob.o LoginJob.o
-	rm -f fake-client.o
+	rm -f image.o fake-client.o screenshot.o
 
 fisher : main.o Socket.o Window.o Application.o Job.o Renderer.o Texture.o QRCode.o CoopJob.o LoginJob.o  
 	g++ -o $@ $^ -pthread -ljpeg -lqrencode -lSDL2 
@@ -59,9 +59,15 @@ LoginJob.o: ../src/jobs/login/LoginJob.cpp ../src/jobs/login/LoginJob.h \
  ../src/core/QRCode.h ../src/core/Socket.h
 	g++ -c  ../src/jobs/login/LoginJob.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g 
 
-fake-client : fake-client.o  
-	gcc -o $@ $^ -pthread 
+fake-client : image.o fake-client.o screenshot.o  
+	gcc -o $@ $^ -ljpeg -lxcb -pthread -g 
 
-fake-client.o: ../test/fake-client.c
-	gcc -c ../test/fake-client.c -O2 -W -Wall 
+image.o: ../test/image.c ../test/image.h
+	gcc -c ../test/image.c -O2 -W -Wall -I../test -g 
+
+fake-client.o: ../test/fake-client.c ../test/screenshot.h ../test/image.h
+	gcc -c ../test/fake-client.c -O2 -W -Wall -I../test -g 
+
+screenshot.o: ../test/screenshot.c ../test/screenshot.h ../test/image.h
+	gcc -c ../test/screenshot.c -O2 -W -Wall -I../test -g 
 
