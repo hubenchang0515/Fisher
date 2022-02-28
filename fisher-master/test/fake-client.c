@@ -90,6 +90,7 @@ void* sendImageThread(void* userdata)
 		write(fd, jpeg, len);
 		free(jpeg);
 		image_free(image);
+		usleep(1000000 / 24);
 	}
 
 	return NULL;
