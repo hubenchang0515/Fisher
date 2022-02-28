@@ -28,20 +28,16 @@ std::vector<std::string> LoginRobot::getIpList() noexcept
 {
     std::vector<std::string> ipList;
 
-    #ifdef OS_WIN
+    char hostName[256];
+    gethostname(hostName, 256);
 
-    #else
-        char hostName[_SC_HOST_NAME_MAX];
-        gethostname(hostName, _SC_HOST_NAME_MAX);
-
-        struct hostent* hostEntry = gethostbyname(hostName);
-        for(int i = 0; hostEntry->h_addr_list[i]; i++) 
-        {
-            std::string ip = inet_ntoa(*(struct in_addr*)(hostEntry->h_addr_list[i]));
-            ipList.emplace_back(ip);
-            LOG("IP: %s\n", ip.c_str());
-        }
-    #endif
+    struct hostent* hostEntry = gethostbyname(hostName);
+    for(int i = 0; hostEntry->h_addr_list[i]; i++) 
+    {
+        std::string ip = inet_ntoa(*(struct in_addr*)(hostEntry->h_addr_list[i]));
+        ipList.emplace_back(ip);
+        LOG("IP: %s\n", ip.c_str());
+    }
 
     return ipList;
 }
