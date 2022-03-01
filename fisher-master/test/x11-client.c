@@ -59,9 +59,10 @@ void* sendImageThread(void* userdata)
 		writeI32(fd, width);
 		writeI32(fd, height);
 		writeI32(fd, len);
-		write(fd, jpeg, len);
+		ssize_t n = write(fd, jpeg, len);
 		free(jpeg);
-		
+		assert(n > 0 && (size_t)(n)== len);
+
 		frames += 1;
 		if (time(NULL) > t)
 		{
