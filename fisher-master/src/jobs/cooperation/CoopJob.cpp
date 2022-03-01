@@ -55,8 +55,10 @@ void CoopRobot::onEvent(SDL_Event& ev)
     if (ev.type == SDL_KEYDOWN || ev.type == SDL_KEYUP)
     {
         m_coopSocket.write(ev.type);
+        m_coopSocket.write(ev.key.keysym.scancode);
         m_coopSocket.write(ev.key.keysym.sym);
         m_coopSocket.write(ev.key.state);
+        LOG("%u %d %d %u", ev.type, ev.key.keysym.scancode, ev.key.keysym.sym, ev.key.state);
     }
 
     if (ev.type == SDL_MOUSEBUTTONDOWN || ev.type == SDL_MOUSEBUTTONUP)
@@ -66,6 +68,7 @@ void CoopRobot::onEvent(SDL_Event& ev)
         m_coopSocket.write(ev.button.state);
         m_coopSocket.write(ev.button.x);
         m_coopSocket.write(ev.button.y);
+        LOG("%u %u %u %d %d", ev.type, ev.button.button, ev.button.state, ev.button.x, ev.button.y);
     }
 
     if (ev.type == SDL_MOUSEMOTION)
@@ -73,6 +76,7 @@ void CoopRobot::onEvent(SDL_Event& ev)
         m_coopSocket.write(ev.type);
         m_coopSocket.write(ev.motion.x);
         m_coopSocket.write(ev.motion.y);
+        LOG("%u %d %d", ev.type, ev.motion.x, ev.motion.y);
     }
 
     if (ev.type == SDL_MOUSEWHEEL)
@@ -80,6 +84,7 @@ void CoopRobot::onEvent(SDL_Event& ev)
         m_coopSocket.write(ev.type);
         m_coopSocket.write(ev.wheel.x);
         m_coopSocket.write(ev.wheel.y);
+        LOG("%u %d %d", ev.type, ev.wheel.x, ev.wheel.y);
     }
 }
 
