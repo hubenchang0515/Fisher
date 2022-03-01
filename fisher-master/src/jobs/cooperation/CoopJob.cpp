@@ -48,39 +48,37 @@ void CoopRobot::onDraw()
 
 void CoopRobot::onEvent(SDL_Event& ev)
 {
-    #define CMD_SIZE 128
-    char cmd[CMD_SIZE];
+    // TODO: 梳理事件并封装
     if (ev.type == SDL_QUIT)
         m_coopSocket.shutdown();
 
-    bool hasCmd = false;
-
-    if (ev.type == SDL_MOUSEBUTTONDOWN && ev.button.button == SDL_BUTTON_LEFT)
+    if (ev.type == SDL_KEYDOWN || ev.type == SDL_KEYUP)
     {
-        memset(cmd, 0, CMD_SIZE);
-        sprintf(cmd, "type:pressed x:%d y:%d", ev.button.x, ev.button.y);
-        hasCmd = true;
+        m_coopSocket.write(ev.type);
+        m_coopSocket.write(ev.key.keysym.sym);
+        m_coopSocket.write(ev.key.state);
     }
 
-    if (ev.type == SDL_MOUSEBUTTONUP && ev.button.button == SDL_BUTTON_LEFT)
+    if (ev.type == SDL_MOUSEBUTTONDOWN || ev.type == SDL_MOUSEBUTTONUP)
     {
-        memset(cmd, 0, CMD_SIZE);
-        sprintf(cmd, "type:released x:%d y:%d", ev.button.x, ev.button.y);
-        hasCmd = true;
+        m_coopSocket.write(ev.type);
+        m_coopSocket.write(ev.button.button);
+        m_coopSocket.write(ev.button.state);
+        m_coopSocket.write(ev.button.x);
+        m_coopSocket.write(ev.button.y);
     }
 
-    if (ev.type == SDL_MOUSEMOTION && ev.motion.state == SDL_PRESSED)
+    if (ev.type == SDL_MOUSEMOTION)
     {
-        memset(cmd, 0, CMD_SIZE);
-        sprintf(cmd, "type:motion x:%d y:%d", ev.motion.x, ev.motion.y);
-        hasCmd = true;
+        m_coopSocket.write(ev.type);
+        m_coopSocket.write(ev.motion.x);
+        m_coopSocket.write(ev.motion.y);
     }
 
-    if (hasCmd)
+    if (ev.type == SDL_MOUSEWHEEL)
     {
-        uint32_t size = strlen(cmd) + 1;
-        m_coopSocket.write(size);
-        m_coopSocket.write(cmd, size);
+        m_coopSocket.write(ev.type);
+        m_coopSocket.write(ev.wheel.direction);
     }
 }
 
