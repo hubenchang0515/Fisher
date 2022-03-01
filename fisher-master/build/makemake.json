@@ -17,9 +17,16 @@
             "name": "x11-client",
             "type": "executable",
             "cflags": "-O2 -W -Wall -I../test",
-            "libs": "-ljpeg -lxcb -lxcb-xtest -lxcb-keysyms -pthread -g",
+            "libs.linux": "-ljpeg -lxcb -lxcb-xtest -lxcb-keysyms -pthread -g",
             "sources": [
-                "../test"
+                "../test/joke.c"
+            ],
+            "sources.linux": [
+                "../test/compress.c",
+                "../test/keysym.c",
+                "../test/sock.c",
+                "../test/x11-client.c",
+                "../test/xutils.c"
             ]
         }
     ]
