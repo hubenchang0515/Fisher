@@ -2,13 +2,13 @@
 
 .PHONY: all install clean
 
-all: fisher fake-client
+all: fisher x11-client
 
 install: all
 
 clean:
 	rm -f main.o Socket.o Window.o Application.o Job.o Renderer.o Texture.o QRCode.o CoopJob.o LoginJob.o
-	rm -f image.o fake-client.o screenshot.o
+	rm -f sock.o xutils.o x11-client.o keysym.o compress.o
 
 fisher : main.o Socket.o Window.o Application.o Job.o Renderer.o Texture.o QRCode.o CoopJob.o LoginJob.o  
 	g++ -o $@ $^ -pthread -ljpeg -lqrencode -lSDL2 
@@ -59,15 +59,22 @@ LoginJob.o: ../src/jobs/login/LoginJob.cpp ../src/jobs/login/LoginJob.h \
  ../src/core/QRCode.h ../src/core/Socket.h
 	g++ -c  ../src/jobs/login/LoginJob.cpp -O2 -W -Wall -I../src/core -I../src/jobs/cooperation -I../src/jobs/login -g 
 
-fake-client : image.o fake-client.o screenshot.o  
-	gcc -o $@ $^ -ljpeg -lxcb -pthread -g 
+x11-client : sock.o xutils.o x11-client.o keysym.o compress.o  
+	gcc -o $@ $^ -ljpeg -lxcb -lxcb-xtest -lxcb-keysyms -pthread -g 
 
-image.o: ../test/image.c ../test/image.h
-	gcc -c ../test/image.c -O2 -W -Wall -I../test -g 
+sock.o: ../test/sock.c ../test/sock.h
+	gcc -c ../test/sock.c -O2 -W -Wall -I../test 
 
-fake-client.o: ../test/fake-client.c ../test/screenshot.h ../test/image.h
-	gcc -c ../test/fake-client.c -O2 -W -Wall -I../test -g 
+xutils.o: ../test/xutils.c ../test/xutils.h
+	gcc -c ../test/xutils.c -O2 -W -Wall -I../test 
 
-screenshot.o: ../test/screenshot.c ../test/screenshot.h ../test/image.h
-	gcc -c ../test/screenshot.c -O2 -W -Wall -I../test -g 
+x11-client.o: ../test/x11-client.c ../test/sock.h ../test/xutils.h \
+ ../test/compress.h ../test/keysym.h
+	gcc -c ../test/x11-client.c -O2 -W -Wall -I../test 
+
+keysym.o: ../test/keysym.c ../test/keysym.h
+	gcc -c ../test/keysym.c -O2 -W -Wall -I../test 
+
+compress.o: ../test/compress.c ../test/compress.h
+	gcc -c ../test/compress.c -O2 -W -Wall -I../test 
 

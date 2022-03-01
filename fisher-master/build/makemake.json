@@ -14,10 +14,10 @@
             ]
         },
         {
-            "name": "fake-client",
+            "name": "x11-client",
             "type": "executable",
-            "cflags": "-O2 -W -Wall -I../test -g",
-            "libs": "-ljpeg -lxcb -pthread -g",
+            "cflags": "-O2 -W -Wall -I../test",
+            "libs": "-ljpeg -lxcb -lxcb-xtest -lxcb-keysyms -pthread -g",
             "sources": [
                 "../test"
             ]
