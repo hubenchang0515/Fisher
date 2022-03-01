@@ -78,7 +78,8 @@ void CoopRobot::onEvent(SDL_Event& ev)
     if (ev.type == SDL_MOUSEWHEEL)
     {
         m_coopSocket.write(ev.type);
-        m_coopSocket.write(ev.wheel.direction);
+        m_coopSocket.write(ev.wheel.x);
+        m_coopSocket.write(ev.wheel.y);
     }
 }
 
