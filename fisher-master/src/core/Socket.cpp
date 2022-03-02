@@ -243,14 +243,25 @@ bool Socket::write(uint32_t data) const noexcept
     return true;
 }
 
-bool Socket::write(void* data, size_t len) const noexcept
+bool Socket::write(const void* data, size_t len) const noexcept
 {
-    ssize_t done = send(m_fd, reinterpret_cast<char*>(data), len, 0);
-    if (done < 0 || static_cast<size_t>(done) != len)
+    size_t done = 0;
+    do
     {
-        ERR("%s", SOCK_ERROR());
-        return false;
-    }
+        ssize_t n = SOCK_SEND(m_fd, reinterpret_cast<const char*>(data) + done, len, 0);
+        if (n < 0)
+        {
+            ERR("%s", SOCK_ERROR());
+            return false;
+        }
+        else if (n == 0)
+        {
+            LOG("client disconnected");
+            return false;
+        }
+
+        done += static_cast<size_t>(n);
+    }while(done < len);
 
     return true;
 }

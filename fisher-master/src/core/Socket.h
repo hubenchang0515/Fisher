@@ -13,7 +13,7 @@
     #define SOCK_ERROR() strerror(WSAGetLastError())
     #define SOCK_SHUT_FLAG SD_BOTH
     #define SOCK_RECV(sock, buf, bytes, flags) recv(sock, reinterpret_cast<char*>(buf), bytes, flags)
-    #define SOCK_SEND(sock, buf, bytes, flags) send(sock, reinterpret_cast<char*>(buf), bytes, flags)
+    #define SOCK_SEND(sock, buf, bytes, flags) send(sock, reinterpret_cast<const char*>(buf), bytes, flags)
 #else
     #include <unistd.h>  
     #include <netdb.h>
@@ -27,7 +27,7 @@
     #define SOCK_ERROR() strerror(errno)
     #define SOCK_SHUT_FLAG SHUT_RDWR
     #define SOCK_RECV(sock, buf, bytes, flags) recv(sock, reinterpret_cast<void*>(buf), bytes, flags)
-    #define SOCK_SEND(sock, buf, bytes, flags) send(sock, reinterpret_cast<void*>(buf), bytes, flags)
+    #define SOCK_SEND(sock, buf, bytes, flags) send(sock, reinterpret_cast<const void*>(buf), bytes, flags)
 #endif
 
 #include <string>
@@ -71,7 +71,7 @@ public:
     bool write(uint16_t data) const noexcept;
     bool write(int32_t data) const noexcept;
     bool write(uint32_t data) const noexcept;
-    bool write(void* data, size_t len) const noexcept;
+    bool write(const void* data, size_t len) const noexcept;
 
     bool read(int8_t* data) const noexcept;
     bool read(uint8_t* data) const noexcept;
